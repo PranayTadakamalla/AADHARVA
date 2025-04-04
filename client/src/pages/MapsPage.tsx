@@ -133,6 +133,14 @@ export default function MapsPage() {
   }, [heatmapData]);
 
   useEffect(() => {
+    // Check if Google Maps API key is available
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+    if (!apiKey || apiKey.trim() === "") {
+      console.error("Google Maps API key not found. Map functionality will be limited.");
+      createMockMap();
+      return;
+    }
+    
     // Check if we already have the map script loaded
     if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
       if (window.google && mapRef.current) {
@@ -161,7 +169,7 @@ export default function MapsPage() {
         };
         
         const script = document.createElement("script");
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}&callback=initMap&libraries=visualization,marker`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&libraries=visualization,marker`;
         script.async = true;
         script.defer = true;
         script.onerror = () => {
@@ -175,7 +183,7 @@ export default function MapsPage() {
           if (!window.google && mapRef.current) {
             createMockMap();
           }
-        }, 3000);
+        }, 2000); // Reduced timeout for faster fallback
         
         return () => clearTimeout(timeout);
       }
@@ -582,28 +590,59 @@ export default function MapsPage() {
     mapElement.style.position = 'relative';
     mapElement.style.overflow = 'hidden';
     
-    // Create a grid pattern
+    // Create a grid pattern with different animation delays for sci-fi effect
     for (let i = 0; i < 20; i++) {
       const horizontalLine = document.createElement('div');
-      horizontalLine.style.position = 'absolute';
+      horizontalLine.className = 'map-grid-line';
       horizontalLine.style.left = '0';
       horizontalLine.style.right = '0';
       horizontalLine.style.top = `${i * 5}%`;
       horizontalLine.style.height = '1px';
-      horizontalLine.style.backgroundColor = 'rgba(75, 104, 120, 0.3)';
+      horizontalLine.style.animationDelay = `${i * 0.1}s`;
       mapElement.appendChild(horizontalLine);
       
       const verticalLine = document.createElement('div');
-      verticalLine.style.position = 'absolute';
+      verticalLine.className = 'map-grid-line';
       verticalLine.style.top = '0';
       verticalLine.style.bottom = '0';
       verticalLine.style.left = `${i * 5}%`;
       verticalLine.style.width = '1px';
-      verticalLine.style.backgroundColor = 'rgba(75, 104, 120, 0.3)';
+      verticalLine.style.animationDelay = `${i * 0.15 + 0.5}s`;
       mapElement.appendChild(verticalLine);
     }
     
-    // Add map title/label
+    // Add a cross-hair marker to indicate the center
+    const centerMarker = document.createElement('div');
+    centerMarker.style.position = 'absolute';
+    centerMarker.style.left = '50%';
+    centerMarker.style.top = '50%';
+    centerMarker.style.width = '20px';
+    centerMarker.style.height = '20px';
+    centerMarker.style.transform = 'translate(-50%, -50%)';
+    centerMarker.style.pointerEvents = 'none';
+    
+    // Create the crosshair
+    const centerHorizontal = document.createElement('div');
+    centerHorizontal.style.position = 'absolute';
+    centerHorizontal.style.left = '0';
+    centerHorizontal.style.right = '0';
+    centerHorizontal.style.top = '50%';
+    centerHorizontal.style.height = '1px';
+    centerHorizontal.style.backgroundColor = 'rgba(0, 191, 255, 0.7)';
+    
+    const centerVertical = document.createElement('div');
+    centerVertical.style.position = 'absolute';
+    centerVertical.style.top = '0';
+    centerVertical.style.bottom = '0';
+    centerVertical.style.left = '50%';
+    centerVertical.style.width = '1px';
+    centerVertical.style.backgroundColor = 'rgba(0, 191, 255, 0.7)';
+    
+    centerMarker.appendChild(centerHorizontal);
+    centerMarker.appendChild(centerVertical);
+    mapElement.appendChild(centerMarker);
+    
+    // Add map title/label with fallback notice
     const mapTitle = document.createElement('div');
     mapTitle.style.position = 'absolute';
     mapTitle.style.top = '5%';
@@ -612,8 +651,32 @@ export default function MapsPage() {
     mapTitle.style.color = '#8ec3b9';
     mapTitle.style.fontSize = '16px';
     mapTitle.style.fontWeight = 'bold';
-    mapTitle.textContent = 'Rural Development Projects Map';
+    mapTitle.style.textAlign = 'center';
+    mapTitle.innerHTML = `
+      <div>Rural Development Projects Map</div>
+      <div style="font-size: 12px; color: #64cbe6; margin-top: 5px;">
+        <span style="color: #f76e6e; padding: 0 5px;">•</span>
+        Mock Map Visualization - Google Maps API key required for full functionality
+        <span style="color: #f76e6e; padding: 0 5px;">•</span>
+      </div>
+    `;
     mapElement.appendChild(mapTitle);
+    
+    // Add notice about API key
+    const mapNotice = document.createElement('div');
+    mapNotice.style.position = 'absolute';
+    mapNotice.style.bottom = '15px';
+    mapNotice.style.left = '50%';
+    mapNotice.style.transform = 'translateX(-50%)';
+    mapNotice.style.padding = '6px 12px';
+    mapNotice.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+    mapNotice.style.borderRadius = '4px';
+    mapNotice.style.color = '#ffffff';
+    mapNotice.style.fontSize = '12px';
+    mapNotice.style.border = '1px solid rgba(0, 191, 255, 0.3)';
+    mapNotice.style.zIndex = '100';
+    mapNotice.innerHTML = 'Filters still work! Try selecting different regions and sectors';
+    mapElement.appendChild(mapNotice);
     
     // Add mock project points based on the actual data and filters
     const mockProjects = [
@@ -927,6 +990,16 @@ export default function MapsPage() {
   ];
 
   // Filter components
+  // Update region filter and recreate map if needed
+  const handleRegionChange = (region: string) => {
+    setActiveRegion(region);
+    
+    // If we're using the mock map, recreate it with the new region filter
+    if (mapRef.current && !window.google) {
+      setTimeout(() => createMockMap(), 0);
+    }
+  };
+  
   const RegionButton = ({ name, active, onClick }: { name: string, active: boolean, onClick: () => void }) => (
     <button
       className={`px-4 py-2 rounded-md text-sm font-medium border ${
@@ -972,12 +1045,12 @@ export default function MapsPage() {
               <div className="bg-[var(--cyber-dark-accent)] p-4 rounded-lg border border-[var(--cyber-cyan)]/20 flex-1">
                 <h3 className="text-lg font-medium mb-3 text-[var(--cyber-cyan)]">Region Filter</h3>
                 <div className="flex flex-wrap gap-2">
-                  <RegionButton name="ALL REGIONS" active={activeRegion === "all"} onClick={() => setActiveRegion("all")} />
-                  <RegionButton name="NORTH" active={activeRegion === "north"} onClick={() => setActiveRegion("north")} />
-                  <RegionButton name="SOUTH" active={activeRegion === "south"} onClick={() => setActiveRegion("south")} />
-                  <RegionButton name="EAST" active={activeRegion === "east"} onClick={() => setActiveRegion("east")} />
-                  <RegionButton name="WEST" active={activeRegion === "west"} onClick={() => setActiveRegion("west")} />
-                  <RegionButton name="CENTRAL" active={activeRegion === "central"} onClick={() => setActiveRegion("central")} />
+                  <RegionButton name="ALL REGIONS" active={activeRegion === "all"} onClick={() => handleRegionChange("all")} />
+                  <RegionButton name="NORTH" active={activeRegion === "north"} onClick={() => handleRegionChange("north")} />
+                  <RegionButton name="SOUTH" active={activeRegion === "south"} onClick={() => handleRegionChange("south")} />
+                  <RegionButton name="EAST" active={activeRegion === "east"} onClick={() => handleRegionChange("east")} />
+                  <RegionButton name="WEST" active={activeRegion === "west"} onClick={() => handleRegionChange("west")} />
+                  <RegionButton name="CENTRAL" active={activeRegion === "central"} onClick={() => handleRegionChange("central")} />
                 </div>
               </div>
 
@@ -1100,7 +1173,7 @@ export default function MapsPage() {
                 <SciFiCard className="p-5 h-full">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-medium text-[var(--cyber-cyan)]">Development Progress by Region</h3>
-                    <Select defaultValue="all" onValueChange={(value) => setActiveRegion(value)}>
+                    <Select defaultValue="all" onValueChange={(value) => handleRegionChange(value)}>
                       <SelectTrigger className="w-[150px] border-[var(--cyber-cyan)]/30 bg-[var(--cyber-dark)]">
                         <SelectValue placeholder="Region" />
                       </SelectTrigger>

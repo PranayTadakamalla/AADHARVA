@@ -28,6 +28,52 @@
   }
 }
 
+/* Enhanced animations for mock map */
+@keyframes mockPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.map-point {
+  position: relative;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.map-point::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: inherit;
+  animation: mockPulse 3s infinite;
+  z-index: -1;
+}
+
+.map-grid-line {
+  position: absolute;
+  background-color: rgba(75, 104, 120, 0.3);
+  animation: blink 4s infinite;
+}
+
 /* Cyber-themed scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
