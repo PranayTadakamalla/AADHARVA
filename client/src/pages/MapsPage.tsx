@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useActions } from "@/hooks/use-actions";
 import { Button } from "@/components/ui/button";
 import { Download, Share, FileText, Printer, BarChart } from "lucide-react";
+import HeatmapSection from "@/components/HeatmapSection";
 
 // Add Google Maps type definitions
 declare global {
@@ -1239,6 +1240,20 @@ export default function MapsPage() {
               </div>
             </SciFiCard>
           )}
+        </div>
+        
+        {/* Separate Heatmap Section */}
+        <div className="mt-12 mb-6">
+          <h2 className="text-3xl font-bold mb-4 text-cyan-400 glitch-text flex items-center">
+            <span className="mr-2">⟨</span>Rural Challenges Heatmap<span className="ml-2">⟩</span>
+          </h2>
+          <p className="text-lg text-gray-300 max-w-3xl mb-6">
+            Visualize the density and distribution of rural development challenges and interventions across different regions using our interactive heatmap analysis.
+          </p>
+          
+          <SciFiCard className="p-0 overflow-hidden">
+            <HeatmapSection />
+          </SciFiCard>
         </div>
       </main>
       <Footer />

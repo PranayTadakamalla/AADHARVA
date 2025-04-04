@@ -12,6 +12,7 @@ import EnergyPage from "@/pages/EnergyPage";
 import ConnectivityPage from "@/pages/ConnectivityPage";
 import GovernancePage from "@/pages/GovernancePage";
 import MapsPage from "@/pages/MapsPage";
+import AssistantPage from "@/pages/AssistantPage";
 
 function Router() {
   return (
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/connectivity" component={ConnectivityPage} />
       <Route path="/governance" component={GovernancePage} />
       <Route path="/maps" component={MapsPage} />
+      <Route path="/assistant" component={AssistantPage} />
       <Route component={NotFound} />
     </Switch>
   );

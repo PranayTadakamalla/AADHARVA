@@ -4,8 +4,6 @@ import HeroSection from "@/components/HeroSection";
 import Dashboard from "@/components/Dashboard";
 import SolutionsGrid from "@/components/SolutionsGrid";
 import MapSection from "@/components/MapSection";
-import HeatmapSection from "@/components/HeatmapSection";
-import AssistantSection from "@/components/AssistantSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -17,8 +15,6 @@ export default function Home() {
         <Dashboard />
         <SolutionsGrid />
         <MapSection />
-        <HeatmapSection />
-        <AssistantSection />
       </main>
       <Footer />
     </div>
