@@ -133,17 +133,55 @@ export default function MapsPage() {
   }, [heatmapData]);
 
   useEffect(() => {
-    // Initialize Google Maps
-    if (window.google && mapRef.current) {
-      initializeMap();
-    } else {
-      // Load Google Maps API
-      window.initMap = initializeMap;
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}&callback=initMap`;
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
+    // Check if we already have the map script loaded
+    if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
+      if (window.google && mapRef.current) {
+        initializeMap();
+      } else {
+        createMockMap();
+      }
+      return;
+    }
+    
+    try {
+      // Initialize Google Maps if API is loaded
+      if (window.google && mapRef.current) {
+        initializeMap();
+      } else {
+        // Load Google Maps API with fallback
+        window.initMap = () => {
+          if (mapRef.current) {
+            try {
+              initializeMap();
+            } catch (error) {
+              console.error("Error initializing Google Maps:", error);
+              createMockMap();
+            }
+          }
+        };
+        
+        const script = document.createElement("script");
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}&callback=initMap&libraries=visualization,marker`;
+        script.async = true;
+        script.defer = true;
+        script.onerror = () => {
+          console.error("Google Maps API failed to load");
+          createMockMap();
+        };
+        document.head.appendChild(script);
+        
+        // Set a timeout to create mock map if Google Maps takes too long
+        const timeout = setTimeout(() => {
+          if (!window.google && mapRef.current) {
+            createMockMap();
+          }
+        }, 3000);
+        
+        return () => clearTimeout(timeout);
+      }
+    } catch (error) {
+      console.error("Error setting up map:", error);
+      createMockMap();
     }
   }, [activeRegion, activeFilters]);
 
@@ -157,13 +195,95 @@ export default function MapsPage() {
       center,
       styles: getMapStyles(),
       mapTypeControl: false,
-      streetViewControl: false
+      streetViewControl: false,
+      mapId: 'RURAL_DEV_MAP'
     };
 
     const map = new window.google.maps.Map(mapRef.current, mapOptions);
 
+    // Initialize heatmap if data is available
+    if (activeFilters.water || activeFilters.agriculture || activeFilters.healthcare) {
+      initializeHeatmap(map);
+    }
+
     // Add markers for different project types
     addMarkers(map);
+  };
+
+  const initializeHeatmap = (map: any) => {
+    if (!window.google) return;
+    
+    // Generate heatmap data based on active filters
+    const heatmapData = [];
+    
+    // Add more data points if water is active
+    if (activeFilters.water) {
+      // Northern water projects
+      heatmapData.push(
+        {location: new window.google.maps.LatLng(29.2, 78.1), weight: 0.7},
+        {location: new window.google.maps.LatLng(28.9, 76.2), weight: 0.5},
+        {location: new window.google.maps.LatLng(30.7, 76.8), weight: 0.8}
+      );
+    }
+    
+    // Add agriculture hotspots
+    if (activeFilters.agriculture) {
+      // Agricultural belt
+      heatmapData.push(
+        {location: new window.google.maps.LatLng(22.8, 87.2), weight: 0.9},
+        {location: new window.google.maps.LatLng(23.5, 88.4), weight: 0.7},
+        {location: new window.google.maps.LatLng(21.9, 85.7), weight: 0.6},
+        {location: new window.google.maps.LatLng(23.2, 77.3), weight: 0.4}
+      );
+    }
+    
+    // Add healthcare data
+    if (activeFilters.healthcare) {
+      // Healthcare centers
+      heatmapData.push(
+        {location: new window.google.maps.LatLng(18.5, 73.8), weight: 0.5},
+        {location: new window.google.maps.LatLng(17.2, 78.3), weight: 0.6},
+        {location: new window.google.maps.LatLng(13.1, 80.2), weight: 0.7}
+      );
+    }
+    
+    // Only create heatmap if we have data
+    if (heatmapData.length > 0) {
+      const heatmap = new window.google.maps.visualization.HeatmapLayer({
+        data: heatmapData,
+        map: map,
+        radius: 20,
+        opacity: 0.6,
+      });
+      
+      // Adjust gradient based on active sectors
+      let gradient = [
+        'rgba(0, 255, 255, 0)',
+        'rgba(0, 255, 255, 1)',
+        'rgba(0, 191, 255, 1)',
+        'rgba(0, 127, 255, 1)',
+        'rgba(0, 63, 255, 1)',
+        'rgba(0, 0, 255, 1)',
+        'rgba(0, 0, 223, 1)',
+        'rgba(0, 0, 191, 1)',
+        'rgba(0, 0, 159, 1)',
+        'rgba(0, 0, 127, 1)',
+        'rgba(63, 0, 91, 1)',
+        'rgba(127, 0, 63, 1)',
+        'rgba(191, 0, 31, 1)',
+        'rgba(255, 0, 0, 1)'
+      ];
+      
+      if (activeFilters.agriculture && !activeFilters.water && !activeFilters.healthcare) {
+        gradient = ['rgba(0,0,0,0)', 'rgba(0,255,0,1)'];
+      } else if (activeFilters.water && !activeFilters.agriculture && !activeFilters.healthcare) {
+        gradient = ['rgba(0,0,0,0)', 'rgba(0,0,255,1)'];
+      } else if (activeFilters.healthcare && !activeFilters.water && !activeFilters.agriculture) {
+        gradient = ['rgba(0,0,0,0)', 'rgba(255,0,0,1)'];
+      }
+      
+      heatmap.set('gradient', gradient);
+    }
   };
 
   const addMarkers = (map: any) => {
@@ -173,44 +293,100 @@ export default function MapsPage() {
         position: { lat: 28.7041, lng: 77.1025 }, 
         title: "Water Purification System",
         type: "water",
-        region: "north"
+        region: "north",
+        details: "Provides clean drinking water to over 5,000 villagers"
       },
       { 
         position: { lat: 19.0760, lng: 72.8777 }, 
         title: "Solar Power Grid",
         type: "energy",
-        region: "west"
+        region: "west",
+        details: "Generates 25kW of clean energy powering 120 households"
       },
       { 
         position: { lat: 13.0827, lng: 80.2707 }, 
         title: "Digital Literacy Center",
         type: "education",
-        region: "south"
+        region: "south",
+        details: "Trained over 2,000 rural students in digital skills"
       },
       { 
         position: { lat: 22.5726, lng: 88.3639 }, 
         title: "Agricultural Innovation Hub",
         type: "agriculture",
-        region: "east"
+        region: "east",
+        details: "Increased crop yields by 45% through smart farming techniques"
       },
       { 
         position: { lat: 17.3850, lng: 78.4867 }, 
         title: "Telemedicine Center",
         type: "healthcare",
-        region: "south"
+        region: "south",
+        details: "Provided remote healthcare to 8,500 patients"
       },
       { 
         position: { lat: 23.0225, lng: 72.5714 }, 
         title: "Internet Connectivity Tower",
         type: "connectivity",
-        region: "west"
+        region: "west",
+        details: "Brings high-speed internet to 12 villages, benefiting 9,000 people"
       },
       { 
         position: { lat: 26.9124, lng: 75.7873 }, 
         title: "e-Governance Kiosk",
         type: "governance",
-        region: "north"
+        region: "north",
+        details: "Processed over 15,000 government service applications"
       },
+      { 
+        position: { lat: 25.5941, lng: 85.1376 }, 
+        title: "Community Water Treatment Plant",
+        type: "water",
+        region: "east",
+        details: "Serves 8 villages with clean water infrastructure"
+      },
+      { 
+        position: { lat: 15.3173, lng: 75.7139 }, 
+        title: "Micro-Solar Grids",
+        type: "energy",
+        region: "south",
+        details: "Decentralized power for 32 remote households" 
+      },
+      { 
+        position: { lat: 31.1471, lng: 75.3412 }, 
+        title: "Smart Farming Initiative",
+        type: "agriculture",
+        region: "north",
+        details: "IoT sensors monitoring 450 acres of farmland"
+      },
+      { 
+        position: { lat: 21.1458, lng: 79.0882 }, 
+        title: "Mobile Health Unit",
+        type: "healthcare",
+        region: "central",
+        details: "Provided healthcare services to over 10,000 villagers"
+      },
+      { 
+        position: { lat: 27.0238, lng: 74.2179 }, 
+        title: "Rural Internet Hub",
+        type: "connectivity",
+        region: "north",
+        details: "Digital skills training for 1,500 rural youths"
+      },
+      { 
+        position: { lat: 12.9716, lng: 77.5946 }, 
+        title: "AI Education Center",
+        type: "education",
+        region: "south",
+        details: "Advanced technology training for rural students"
+      },
+      { 
+        position: { lat: 23.2599, lng: 77.4126 }, 
+        title: "Digital Governance Center",
+        type: "governance",
+        region: "central",
+        details: "Digitized land records for 45 villages"
+      }
     ];
 
     // Filter projects by region and type
@@ -224,34 +400,112 @@ export default function MapsPage() {
     filteredProjects.forEach(project => {
       const markerColor = sectorColors[project.type as keyof typeof sectorColors];
       
-      const marker = new window.google.maps.Marker({
-        position: project.position,
-        map,
-        title: project.title,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          fillColor: markerColor,
-          fillOpacity: 0.9,
-          strokeWeight: 0,
-          scale: 10
+      try {
+        // Try to use advanced marker if available
+        if (window.google.maps.marker && window.google.maps.marker.AdvancedMarkerElement) {
+          const advancedMarker = new window.google.maps.marker.AdvancedMarkerElement({
+            map,
+            position: project.position,
+            title: project.title,
+            content: buildAdvancedMarkerContent(markerColor)
+          });
+          
+          advancedMarker.addListener('click', () => {
+            showInfoWindow(map, project, advancedMarker);
+          });
+          
+        } else {
+          // Fallback to regular marker
+          const marker = new window.google.maps.Marker({
+            position: project.position,
+            map,
+            title: project.title,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              fillColor: markerColor,
+              fillOpacity: 0.9,
+              strokeWeight: 0,
+              scale: 10
+            }
+          });
+          
+          marker.addListener("click", () => {
+            showInfoWindow(map, project, marker);
+          });
         }
-      });
-
-      // Add info window
-      const infoWindow = new window.google.maps.InfoWindow({
-        content: `
-          <div style="padding: 10px;">
-            <h3 style="margin: 0 0 8px;">${project.title}</h3>
-            <p style="margin: 0 0 5px;">Type: ${project.type}</p>
-            <p style="margin: 0;">Region: ${project.region}</p>
-          </div>
-        `
-      });
-
-      marker.addListener("click", () => {
-        infoWindow.open(map, marker);
-      });
+      } catch (error) {
+        console.error("Error creating marker:", error);
+        // Last resort fallback
+        const marker = new window.google.maps.Marker({
+          position: project.position,
+          map,
+          title: project.title
+        });
+        
+        marker.addListener("click", () => {
+          showInfoWindow(map, project, marker);
+        });
+      }
     });
+  };
+  
+  // Helper function to build advanced marker element
+  const buildAdvancedMarkerContent = (color: string) => {
+    const container = document.createElement('div');
+    container.className = 'custom-marker';
+    container.style.width = '24px';
+    container.style.height = '24px';
+    container.style.borderRadius = '50%';
+    container.style.backgroundColor = color;
+    container.style.border = '2px solid white';
+    container.style.boxShadow = '0 0 8px rgba(0, 0, 0, 0.3)';
+    
+    // Add pulse effect
+    const pulse = document.createElement('div');
+    pulse.style.position = 'absolute';
+    pulse.style.top = '0';
+    pulse.style.left = '0';
+    pulse.style.right = '0';
+    pulse.style.bottom = '0';
+    pulse.style.borderRadius = '50%';
+    pulse.style.backgroundColor = color;
+    pulse.style.opacity = '0.5';
+    pulse.style.animation = 'pulse 2s infinite';
+    
+    container.appendChild(pulse);
+    return container;
+  };
+  
+  // Helper function to show info window with consistent styling
+  const showInfoWindow = (map: any, project: any, marker: any) => {
+    // Create info window content with styling
+    const content = `
+      <div style="font-family: 'Arial', sans-serif; padding: 12px; max-width: 250px;">
+        <h3 style="margin: 0 0 8px; color: #0066cc; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+          ${project.title}
+        </h3>
+        <p style="margin: 8px 0; font-size: 13px; line-height: 1.4;">
+          <strong>Type:</strong> <span style="text-transform: capitalize;">${project.type}</span>
+        </p>
+        <p style="margin: 8px 0; font-size: 13px; line-height: 1.4;">
+          <strong>Region:</strong> <span style="text-transform: capitalize;">${project.region}</span>
+        </p>
+        <p style="margin: 8px 0; font-size: 13px; line-height: 1.4;">
+          ${project.details || 'Details not available'}
+        </p>
+        <div style="margin-top: 10px; font-size: 12px; color: #666; text-align: right;">
+          Rural Development Project
+        </div>
+      </div>
+    `;
+    
+    // Create and open the info window
+    const infoWindow = new window.google.maps.InfoWindow({
+      content: content,
+      maxWidth: 300
+    });
+    
+    infoWindow.open(map, marker);
   };
 
   const renderHeatmap = () => {
@@ -280,6 +534,213 @@ export default function MapsPage() {
       ctx.fill();
     });
   };
+  
+  // Create a visual mock map with data points when Google Maps is unavailable
+  const createMockMap = () => {
+    if (!mapRef.current) return;
+    console.log("Creating mock map visualization");
+    
+    const mapElement = mapRef.current;
+    mapElement.innerHTML = '';
+    mapElement.style.backgroundColor = '#0e1626';
+    mapElement.style.position = 'relative';
+    mapElement.style.overflow = 'hidden';
+    
+    // Create a grid pattern
+    for (let i = 0; i < 20; i++) {
+      const horizontalLine = document.createElement('div');
+      horizontalLine.style.position = 'absolute';
+      horizontalLine.style.left = '0';
+      horizontalLine.style.right = '0';
+      horizontalLine.style.top = `${i * 5}%`;
+      horizontalLine.style.height = '1px';
+      horizontalLine.style.backgroundColor = 'rgba(75, 104, 120, 0.3)';
+      mapElement.appendChild(horizontalLine);
+      
+      const verticalLine = document.createElement('div');
+      verticalLine.style.position = 'absolute';
+      verticalLine.style.top = '0';
+      verticalLine.style.bottom = '0';
+      verticalLine.style.left = `${i * 5}%`;
+      verticalLine.style.width = '1px';
+      verticalLine.style.backgroundColor = 'rgba(75, 104, 120, 0.3)';
+      mapElement.appendChild(verticalLine);
+    }
+    
+    // Add map title/label
+    const mapTitle = document.createElement('div');
+    mapTitle.style.position = 'absolute';
+    mapTitle.style.top = '5%';
+    mapTitle.style.left = '50%';
+    mapTitle.style.transform = 'translateX(-50%)';
+    mapTitle.style.color = '#8ec3b9';
+    mapTitle.style.fontSize = '16px';
+    mapTitle.style.fontWeight = 'bold';
+    mapTitle.textContent = 'Rural Development Projects Map';
+    mapElement.appendChild(mapTitle);
+    
+    // Add mock project points based on the actual data and filters
+    const mockProjects = [
+      { x: 30, y: 20, color: '#36A2EB', title: 'Water Project - North', type: 'water', region: 'north' },
+      { x: 70, y: 30, color: '#4BC0C0', title: 'Agriculture Hub - West', type: 'agriculture', region: 'west' },
+      { x: 50, y: 75, color: '#9966FF', title: 'Education Center - South', type: 'education', region: 'south' },
+      { x: 25, y: 60, color: '#FF6384', title: 'Healthcare Facility - East', type: 'healthcare', region: 'east' },
+      { x: 80, y: 45, color: '#FFCD56', title: 'Energy Installation - Central', type: 'energy', region: 'central' },
+      { x: 15, y: 35, color: '#FF9F40', title: 'Connectivity Hub - North', type: 'connectivity', region: 'north' },
+      { x: 60, y: 65, color: '#C9CBCF', title: 'Governance Center - South', type: 'governance', region: 'south' },
+      { x: 40, y: 40, color: '#36A2EB', title: 'Water Distribution - Central', type: 'water', region: 'central' },
+      { x: 75, y: 15, color: '#4BC0C0', title: 'Smart Farming - North', type: 'agriculture', region: 'north' },
+      { x: 20, y: 80, color: '#9966FF', title: 'Digital Classroom - West', type: 'education', region: 'west' },
+      { x: 85, y: 70, color: '#FF6384', title: 'Mobile Clinic - East', type: 'healthcare', region: 'east' },
+      { x: 45, y: 25, color: '#FFCD56', title: 'Solar Grid - South', type: 'energy', region: 'south' },
+      { x: 65, y: 85, color: '#FF9F40', title: 'Internet Tower - Central', type: 'connectivity', region: 'central' },
+      { x: 35, y: 55, color: '#C9CBCF', title: 'e-Governance Center - West', type: 'governance', region: 'west' }
+    ];
+    
+    // Filter projects based on current selections
+    const filteredProjects = mockProjects.filter(project => {
+      const regionMatch = activeRegion === "all" || project.region === activeRegion.toLowerCase();
+      const typeMatch = activeFilters[project.type];
+      return regionMatch && typeMatch;
+    });
+    
+    // Add filtered points to the map
+    filteredProjects.forEach(project => {
+      addMockMapPoint(mapElement, project.x, project.y, project.color, project.title, project.type);
+    });
+    
+    // Add region labels
+    addMockMapRegionLabel(mapElement, 50, 10, 'NORTH REGION');
+    addMockMapRegionLabel(mapElement, 50, 90, 'SOUTH REGION');
+    addMockMapRegionLabel(mapElement, 10, 50, 'WEST REGION');
+    addMockMapRegionLabel(mapElement, 90, 50, 'EAST REGION');
+    addMockMapRegionLabel(mapElement, 50, 50, 'CENTRAL REGION');
+  };
+  
+  // Add a point to the mock map
+  const addMockMapPoint = (mapElement: HTMLElement, x: number, y: number, color: string, title: string, type: string) => {
+    const point = document.createElement('div');
+    point.style.position = 'absolute';
+    point.style.left = `${x}%`;
+    point.style.top = `${y}%`;
+    point.style.width = '12px';
+    point.style.height = '12px';
+    point.style.borderRadius = '50%';
+    point.style.backgroundColor = color;
+    point.style.transform = 'translate(-50%, -50%)';
+    point.style.boxShadow = `0 0 8px ${color}`;
+    point.style.cursor = 'pointer';
+    point.title = title;
+    point.className = 'map-point';
+    point.dataset.type = type;
+    
+    // Add pulse effect
+    const pulse = document.createElement('div');
+    pulse.style.position = 'absolute';
+    pulse.style.left = '50%';
+    pulse.style.top = '50%';
+    pulse.style.width = '100%';
+    pulse.style.height = '100%';
+    pulse.style.borderRadius = '50%';
+    pulse.style.backgroundColor = color;
+    pulse.style.transform = 'translate(-50%, -50%)';
+    pulse.style.opacity = '0.5';
+    pulse.style.animation = 'pulse 2s infinite';
+    
+    point.appendChild(pulse);
+    mapElement.appendChild(point);
+    
+    // Add tooltip on hover
+    point.addEventListener('mouseover', () => {
+      const tooltip = document.createElement('div');
+      tooltip.textContent = title;
+      tooltip.style.position = 'absolute';
+      tooltip.style.left = `${x}%`;
+      tooltip.style.top = `${y - 5}%`;
+      tooltip.style.backgroundColor = 'rgba(13, 18, 30, 0.9)';
+      tooltip.style.color = '#fff';
+      tooltip.style.padding = '4px 8px';
+      tooltip.style.borderRadius = '4px';
+      tooltip.style.fontSize = '12px';
+      tooltip.style.transform = 'translate(-50%, -100%)';
+      tooltip.style.zIndex = '10';
+      tooltip.style.border = '1px solid rgba(0, 191, 255, 0.5)';
+      tooltip.className = 'map-tooltip';
+      mapElement.appendChild(tooltip);
+    });
+    
+    point.addEventListener('mouseout', () => {
+      const tooltips = mapElement.querySelectorAll('.map-tooltip');
+      tooltips.forEach(t => t.remove());
+    });
+    
+    // Add click interaction for info popup
+    point.addEventListener('click', () => {
+      // Remove any existing popups
+      const existingPopups = mapElement.querySelectorAll('.map-popup');
+      existingPopups.forEach(p => p.remove());
+      
+      // Create info popup
+      const popup = document.createElement('div');
+      popup.className = 'map-popup';
+      popup.style.position = 'absolute';
+      popup.style.left = `${x}%`;
+      popup.style.top = `${y}%`;
+      popup.style.transform = 'translate(-50%, -120%)';
+      popup.style.backgroundColor = 'rgba(13, 18, 30, 0.95)';
+      popup.style.color = '#fff';
+      popup.style.padding = '10px';
+      popup.style.borderRadius = '4px';
+      popup.style.minWidth = '200px';
+      popup.style.zIndex = '20';
+      popup.style.border = '1px solid rgba(0, 191, 255, 0.5)';
+      popup.style.boxShadow = '0 0 15px rgba(0, 191, 255, 0.2)';
+      
+      // Popup content
+      popup.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; color: var(--cyber-cyan);">${title}</h3>
+          <button class="close-btn" style="background: none; border: none; color: #fff; cursor: pointer;">×</button>
+        </div>
+        <p style="margin: 4px 0;">Type: ${type}</p>
+        <p style="margin: 4px 0;">Status: Active</p>
+        <p style="margin: 4px 0;">Region: ${title.split(' - ')[1]}</p>
+      `;
+      
+      mapElement.appendChild(popup);
+      
+      // Add close button functionality
+      const closeBtn = popup.querySelector('.close-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          popup.remove();
+        });
+      }
+      
+      // Close popup when clicking outside
+      document.addEventListener('click', function closePopup(e) {
+        if (!popup.contains(e.target as Node) && !(e.target as Element).classList.contains('map-point')) {
+          popup.remove();
+          document.removeEventListener('click', closePopup);
+        }
+      });
+    });
+  };
+  
+  // Add region label to the mock map
+  const addMockMapRegionLabel = (mapElement: HTMLElement, x: number, y: number, label: string) => {
+    const regionLabel = document.createElement('div');
+    regionLabel.textContent = label;
+    regionLabel.style.position = 'absolute';
+    regionLabel.style.left = `${x}%`;
+    regionLabel.style.top = `${y}%`;
+    regionLabel.style.transform = 'translate(-50%, -50%)';
+    regionLabel.style.color = 'rgba(142, 195, 185, 0.7)';
+    regionLabel.style.fontSize = '14px';
+    regionLabel.style.fontWeight = 'bold';
+    regionLabel.style.textShadow = '0 0 5px rgba(0,0,0,0.5)';
+    mapElement.appendChild(regionLabel);
+  };
 
   const toggleFilter = (sector: string) => {
     setActiveFilters(prev => ({
@@ -287,7 +748,11 @@ export default function MapsPage() {
       [sector]: !prev[sector]
     }));
 
+    // Apply filters and recreate map if we're using mock map
     applyFilters(sector, !activeFilters[sector]);
+    if (mapRef.current && !window.google) {
+      createMockMap();
+    }
   };
 
   const getMapStyles = () => [
