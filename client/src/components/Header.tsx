@@ -40,6 +40,7 @@ export default function Header() {
           <NavLink href="/connectivity" isActive={location === "/connectivity"}>CONNECTIVITY</NavLink>
           <NavLink href="/governance" isActive={location === "/governance"}>GOVERNANCE</NavLink>
           <NavLink href="/maps" isActive={location === "/maps"}>MAPS</NavLink>
+          <NavLink href="/impact-dashboard" isActive={location === "/impact-dashboard"}>IMPACT</NavLink>
           <NavLink href="/assistant" isActive={location === "/assistant"}>ASSISTANT</NavLink>
         </nav>
 
@@ -55,6 +56,7 @@ export default function Header() {
             <NavLink href="/connectivity" isActive={location === "/connectivity"} onClick={() => setIsMenuOpen(false)}>CONNECTIVITY</NavLink>
             <NavLink href="/governance" isActive={location === "/governance"} onClick={() => setIsMenuOpen(false)}>GOVERNANCE</NavLink>
             <NavLink href="/maps" isActive={location === "/maps"} onClick={() => setIsMenuOpen(false)}>MAPS</NavLink>
+            <NavLink href="/impact-dashboard" isActive={location === "/impact-dashboard"} onClick={() => setIsMenuOpen(false)}>IMPACT</NavLink>
             <NavLink href="/assistant" isActive={location === "/assistant"} onClick={() => setIsMenuOpen(false)}>ASSISTANT</NavLink>
           </nav>
         )}

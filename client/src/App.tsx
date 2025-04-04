@@ -13,6 +13,7 @@ import ConnectivityPage from "@/pages/ConnectivityPage";
 import GovernancePage from "@/pages/GovernancePage";
 import AssistantPage from "@/pages/AssistantPage";
 import MapsPage from "@/pages/MapsPage";
+import ImpactDashboardPage from "@/pages/ImpactDashboardPage";
 
 function Router() {
   return (
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/governance" component={GovernancePage} />
       <Route path="/assistant" component={AssistantPage} />
       <Route path="/maps" component={MapsPage} />
+      <Route path="/impact-dashboard" component={ImpactDashboardPage} />
       <Route component={NotFound} />
     </Switch>
   );
