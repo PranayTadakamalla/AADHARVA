@@ -187,102 +187,138 @@ export default function MapsPage() {
 
   const initializeMap = () => {
     if (!mapRef.current) return;
+    
+    try {
+      // Center on India
+      const center = { lat: 20.5937, lng: 78.9629 };
+      const mapOptions = {
+        zoom: 5,
+        center,
+        styles: getMapStyles(),
+        mapTypeControl: false,
+        streetViewControl: false,
+        mapId: 'RURAL_DEV_MAP'
+      };
 
-    // Center on India
-    const center = { lat: 20.5937, lng: 78.9629 };
-    const mapOptions = {
-      zoom: 5,
-      center,
-      styles: getMapStyles(),
-      mapTypeControl: false,
-      streetViewControl: false,
-      mapId: 'RURAL_DEV_MAP'
-    };
+      const map = new window.google.maps.Map(mapRef.current, mapOptions);
 
-    const map = new window.google.maps.Map(mapRef.current, mapOptions);
+      // Set up the map error handler 
+      window.google.maps.event.addListenerOnce(map, 'idle', () => {
+        // Map has loaded successfully, add markers and features
+        console.log("Map loaded successfully");
+        
+        // Initialize heatmap if data is available
+        if (activeFilters.water || activeFilters.agriculture || activeFilters.healthcare) {
+          try {
+            initializeHeatmap(map);
+          } catch (err) {
+            console.warn("Heatmap initialization failed, continuing with basic map:", err);
+          }
+        }
 
-    // Initialize heatmap if data is available
-    if (activeFilters.water || activeFilters.agriculture || activeFilters.healthcare) {
-      initializeHeatmap(map);
+        // Add markers for different project types
+        try {
+          addMarkers(map);
+        } catch (err) {
+          console.error("Error adding markers:", err);
+        }
+      });
+      
+      // Error handler for map loading failures
+      window.google.maps.event.addListenerOnce(map, 'error', () => {
+        console.error("Google Maps encountered an error during loading");
+        createMockMap();
+      });
+      
+    } catch (error) {
+      console.error("Failed to initialize Google Map:", error);
+      createMockMap();
     }
-
-    // Add markers for different project types
-    addMarkers(map);
   };
 
   const initializeHeatmap = (map: any) => {
     if (!window.google) return;
     
-    // Generate heatmap data based on active filters
-    const heatmapData = [];
-    
-    // Add more data points if water is active
-    if (activeFilters.water) {
-      // Northern water projects
-      heatmapData.push(
-        {location: new window.google.maps.LatLng(29.2, 78.1), weight: 0.7},
-        {location: new window.google.maps.LatLng(28.9, 76.2), weight: 0.5},
-        {location: new window.google.maps.LatLng(30.7, 76.8), weight: 0.8}
-      );
+    // Check if visualization library is available
+    if (!window.google.maps.visualization) {
+      console.warn("Google Maps visualization library not loaded. Heatmap will not be displayed.");
+      return;
     }
     
-    // Add agriculture hotspots
-    if (activeFilters.agriculture) {
-      // Agricultural belt
-      heatmapData.push(
-        {location: new window.google.maps.LatLng(22.8, 87.2), weight: 0.9},
-        {location: new window.google.maps.LatLng(23.5, 88.4), weight: 0.7},
-        {location: new window.google.maps.LatLng(21.9, 85.7), weight: 0.6},
-        {location: new window.google.maps.LatLng(23.2, 77.3), weight: 0.4}
-      );
-    }
-    
-    // Add healthcare data
-    if (activeFilters.healthcare) {
-      // Healthcare centers
-      heatmapData.push(
-        {location: new window.google.maps.LatLng(18.5, 73.8), weight: 0.5},
-        {location: new window.google.maps.LatLng(17.2, 78.3), weight: 0.6},
-        {location: new window.google.maps.LatLng(13.1, 80.2), weight: 0.7}
-      );
-    }
-    
-    // Only create heatmap if we have data
-    if (heatmapData.length > 0) {
-      const heatmap = new window.google.maps.visualization.HeatmapLayer({
-        data: heatmapData,
-        map: map,
-        radius: 20,
-        opacity: 0.6,
-      });
+    try {
+      // Generate heatmap data based on active filters
+      const heatmapData = [];
       
-      // Adjust gradient based on active sectors
-      let gradient = [
-        'rgba(0, 255, 255, 0)',
-        'rgba(0, 255, 255, 1)',
-        'rgba(0, 191, 255, 1)',
-        'rgba(0, 127, 255, 1)',
-        'rgba(0, 63, 255, 1)',
-        'rgba(0, 0, 255, 1)',
-        'rgba(0, 0, 223, 1)',
-        'rgba(0, 0, 191, 1)',
-        'rgba(0, 0, 159, 1)',
-        'rgba(0, 0, 127, 1)',
-        'rgba(63, 0, 91, 1)',
-        'rgba(127, 0, 63, 1)',
-        'rgba(191, 0, 31, 1)',
-        'rgba(255, 0, 0, 1)'
-      ];
-      
-      if (activeFilters.agriculture && !activeFilters.water && !activeFilters.healthcare) {
-        gradient = ['rgba(0,0,0,0)', 'rgba(0,255,0,1)'];
-      } else if (activeFilters.water && !activeFilters.agriculture && !activeFilters.healthcare) {
-        gradient = ['rgba(0,0,0,0)', 'rgba(0,0,255,1)'];
-      } else if (activeFilters.healthcare && !activeFilters.water && !activeFilters.agriculture) {
-        gradient = ['rgba(0,0,0,0)', 'rgba(255,0,0,1)'];
+      // Add more data points if water is active
+      if (activeFilters.water) {
+        // Northern water projects
+        heatmapData.push(
+          {location: new window.google.maps.LatLng(29.2, 78.1), weight: 0.7},
+          {location: new window.google.maps.LatLng(28.9, 76.2), weight: 0.5},
+          {location: new window.google.maps.LatLng(30.7, 76.8), weight: 0.8}
+        );
       }
       
-      heatmap.set('gradient', gradient);
+      // Add agriculture hotspots
+      if (activeFilters.agriculture) {
+        // Agricultural belt
+        heatmapData.push(
+          {location: new window.google.maps.LatLng(22.8, 87.2), weight: 0.9},
+          {location: new window.google.maps.LatLng(23.5, 88.4), weight: 0.7},
+          {location: new window.google.maps.LatLng(21.9, 85.7), weight: 0.6},
+          {location: new window.google.maps.LatLng(23.2, 77.3), weight: 0.4}
+        );
+      }
+      
+      // Add healthcare data
+      if (activeFilters.healthcare) {
+        // Healthcare centers
+        heatmapData.push(
+          {location: new window.google.maps.LatLng(18.5, 73.8), weight: 0.5},
+          {location: new window.google.maps.LatLng(17.2, 78.3), weight: 0.6},
+          {location: new window.google.maps.LatLng(13.1, 80.2), weight: 0.7}
+        );
+      }
+      
+      // Only create heatmap if we have data and HeatmapLayer exists
+      if (heatmapData.length > 0 && window.google.maps.visualization.HeatmapLayer) {
+        const heatmap = new window.google.maps.visualization.HeatmapLayer({
+          data: heatmapData,
+          map: map,
+          radius: 20,
+          opacity: 0.6,
+        });
+        
+        // Adjust gradient based on active sectors
+        let gradient = [
+          'rgba(0, 255, 255, 0)',
+          'rgba(0, 255, 255, 1)',
+          'rgba(0, 191, 255, 1)',
+          'rgba(0, 127, 255, 1)',
+          'rgba(0, 63, 255, 1)',
+          'rgba(0, 0, 255, 1)',
+          'rgba(0, 0, 223, 1)',
+          'rgba(0, 0, 191, 1)',
+          'rgba(0, 0, 159, 1)',
+          'rgba(0, 0, 127, 1)',
+          'rgba(63, 0, 91, 1)',
+          'rgba(127, 0, 63, 1)',
+          'rgba(191, 0, 31, 1)',
+          'rgba(255, 0, 0, 1)'
+        ];
+        
+        if (activeFilters.agriculture && !activeFilters.water && !activeFilters.healthcare) {
+          gradient = ['rgba(0,0,0,0)', 'rgba(0,255,0,1)'];
+        } else if (activeFilters.water && !activeFilters.agriculture && !activeFilters.healthcare) {
+          gradient = ['rgba(0,0,0,0)', 'rgba(0,0,255,1)'];
+        } else if (activeFilters.healthcare && !activeFilters.water && !activeFilters.agriculture) {
+          gradient = ['rgba(0,0,0,0)', 'rgba(255,0,0,1)'];
+        }
+        
+        heatmap.set('gradient', gradient);
+      }
+    } catch (error) {
+      console.error("Error creating heatmap:", error);
     }
   };
 
