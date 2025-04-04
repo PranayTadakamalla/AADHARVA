@@ -3,7 +3,6 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import Dashboard from "@/components/Dashboard";
 import SolutionsGrid from "@/components/SolutionsGrid";
-import MapSection from "@/components/MapSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -14,7 +13,6 @@ export default function Home() {
         <HeroSection />
         <Dashboard />
         <SolutionsGrid />
-        <MapSection />
       </main>
       <Footer />
     </div>

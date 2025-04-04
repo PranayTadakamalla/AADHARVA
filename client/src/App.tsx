@@ -11,7 +11,6 @@ import HealthcarePage from "@/pages/HealthcarePage";
 import EnergyPage from "@/pages/EnergyPage";
 import ConnectivityPage from "@/pages/ConnectivityPage";
 import GovernancePage from "@/pages/GovernancePage";
-import MapsPage from "@/pages/MapsPage";
 import AssistantPage from "@/pages/AssistantPage";
 
 function Router() {
@@ -25,7 +24,6 @@ function Router() {
       <Route path="/energy" component={EnergyPage} />
       <Route path="/connectivity" component={ConnectivityPage} />
       <Route path="/governance" component={GovernancePage} />
-      <Route path="/maps" component={MapsPage} />
       <Route path="/assistant" component={AssistantPage} />
       <Route component={NotFound} />
     </Switch>
