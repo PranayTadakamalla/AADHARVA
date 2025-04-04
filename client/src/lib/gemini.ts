@@ -4,11 +4,11 @@ import { apiRequest } from "./queryClient";
 export const getGeminiResponse = async (message: string): Promise<string> => {
   try {
     // Call our backend to interact with Gemini API
-    const response = await apiRequest("POST", "/api/gemini/chat", {
-      message,
+    const data = await apiRequest({
+      method: "POST", 
+      path: "/api/gemini/chat", 
+      body: { message }
     });
-    
-    const data = await response.json();
     
     if (data.error) {
       console.error("Gemini API error:", data.error);

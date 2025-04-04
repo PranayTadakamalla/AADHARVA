@@ -1,5 +1,6 @@
 export async function getGeminiResponse(message: string): Promise<string> {
   try {
+    // Using process.env for server-side access to environment variables
     const apiKey = process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
