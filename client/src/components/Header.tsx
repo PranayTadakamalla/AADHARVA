@@ -10,7 +10,7 @@ export default function Header() {
     <header className="relative border-b border-[var(--cyber-cyan)]/30 bg-[var(--cyber-blue)]/80 backdrop-blur-md z-20">
       <div className="container mx-auto py-4 px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center">
         <Link href="/">
-          <a className="flex items-center mb-4 md:mb-0 cursor-pointer">
+          <div className="flex items-center mb-4 md:mb-0 cursor-pointer">
             <div className="h-12 w-12 rounded-full bg-[var(--cyber-cyan)]/20 flex items-center justify-center glowing-border mr-4">
               <i className="fas fa-satellite-dish text-[var(--cyber-cyan)] text-xl"></i>
             </div>
@@ -18,7 +18,7 @@ export default function Header() {
               <h1 className="font-rajdhani font-bold text-2xl md:text-3xl text-[var(--cyber-cyan)]">AADHARVA</h1>
               <p className="text-xs text-gray-400 tracking-wider">AI-AUGMENTED DIGITAL HUB FOR RURAL ADVANCEMENT</p>
             </div>
-          </a>
+          </div>
         </Link>
 
         {/* Mobile menu button */}
