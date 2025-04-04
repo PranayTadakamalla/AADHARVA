@@ -108,33 +108,9 @@ export default function MapsPage() {
     connectivity: true,
     governance: true
   });
-  const [density, setDensity] = useState<number>(5);
-  const [heatmapData, setHeatmapData] = useState<DataPoint[]>([]);
   const [year, setYear] = useState<number>(2023);
   const [timeScale, setTimeScale] = useState<string>("yearly");
   const mapRef = useRef<HTMLDivElement>(null);
-  const heatmapCanvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    // Generate heatmap data when filters change
-    let newData: DataPoint[] = [];
-    
-    Object.entries(activeFilters).forEach(([sector, isActive]) => {
-      if (isActive) {
-        const color = sectorColors[sector as keyof typeof sectorColors];
-        // Density controls how many points to generate
-        const points = generateRandomDataPoints(sector, color, Math.floor(density * 5));
-        newData = [...newData, ...points];
-      }
-    });
-    
-    setHeatmapData(newData);
-  }, [activeFilters, density]);
-
-  useEffect(() => {
-    // Render heatmap
-    renderHeatmap();
-  }, [heatmapData]);
 
   // Fetch Google Maps API key from server
   useEffect(() => {
@@ -581,32 +557,7 @@ export default function MapsPage() {
     infoWindow.open(map, marker);
   };
 
-  const renderHeatmap = () => {
-    const canvas = heatmapCanvasRef.current;
-    if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw data points
-    heatmapData.forEach(point => {
-      const x = point.x * canvas.width / 100;
-      const y = point.y * canvas.height / 100;
-      
-      // Draw gradient circle
-      const gradient = ctx.createRadialGradient(x, y, 0, x, y, point.weight * 5);
-      gradient.addColorStop(0, point.color);
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      
-      ctx.beginPath();
-      ctx.fillStyle = gradient;
-      ctx.arc(x, y, point.weight * 5, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  };
   
   // Create a visual mock map with data points when Google Maps is unavailable
   const createMockMap = () => {
@@ -1063,7 +1014,6 @@ export default function MapsPage() {
         <Tabs defaultValue="map" className="w-full">
           <TabsList className="mb-6 bg-[var(--cyber-dark-accent)] p-1 border border-[var(--cyber-cyan)]/30">
             <TabsTrigger value="map" className="data-[state=active]:bg-[var(--cyber-cyan)]/20 data-[state=active]:text-[var(--cyber-cyan)]">Interactive Map</TabsTrigger>
-            <TabsTrigger value="heatmap" className="data-[state=active]:bg-[var(--cyber-cyan)]/20 data-[state=active]:text-[var(--cyber-cyan)]">Sector Density Heatmap</TabsTrigger>
             <TabsTrigger value="charts" className="data-[state=active]:bg-[var(--cyber-cyan)]/20 data-[state=active]:text-[var(--cyber-cyan)]">Analytics Dashboard</TabsTrigger>
           </TabsList>
 
@@ -1126,74 +1076,7 @@ export default function MapsPage() {
             </div>
           </TabsContent>
 
-          {/* HEATMAP VIEW */}
-          <TabsContent value="heatmap" className="space-y-6">
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
-              <div className="bg-[var(--cyber-dark-accent)] p-4 rounded-lg border border-[var(--cyber-cyan)]/20 flex-1">
-                <h3 className="text-lg font-medium mb-3 text-[var(--cyber-cyan)]">Sector Filter</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <FilterCheckbox label="WATER" checked={activeFilters.water} onChange={() => toggleFilter("water")} />
-                  <FilterCheckbox label="AGRICULTURE" checked={activeFilters.agriculture} onChange={() => toggleFilter("agriculture")} />
-                  <FilterCheckbox label="EDUCATION" checked={activeFilters.education} onChange={() => toggleFilter("education")} />
-                  <FilterCheckbox label="HEALTHCARE" checked={activeFilters.healthcare} onChange={() => toggleFilter("healthcare")} />
-                  <FilterCheckbox label="ENERGY" checked={activeFilters.energy} onChange={() => toggleFilter("energy")} />
-                  <FilterCheckbox label="CONNECTIVITY" checked={activeFilters.connectivity} onChange={() => toggleFilter("connectivity")} />
-                  <FilterCheckbox label="GOVERNANCE" checked={activeFilters.governance} onChange={() => toggleFilter("governance")} />
-                </div>
-              </div>
-              
-              <div className="bg-[var(--cyber-dark-accent)] p-4 rounded-lg border border-[var(--cyber-cyan)]/20 flex-1">
-                <h3 className="text-lg font-medium mb-3 text-[var(--cyber-cyan)]">Data Density</h3>
-                <Slider
-                  value={[density]}
-                  onValueChange={(value) => setDensity(value[0])}
-                  min={1}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between mt-2 text-xs text-gray-400">
-                  <span>Low Density</span>
-                  <span>High Density</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Heatmap canvas */}
-            <div className="relative w-full h-[600px] bg-[var(--cyber-dark-accent)] border border-[var(--cyber-cyan)]/20 rounded-lg overflow-hidden">
-              <canvas 
-                ref={heatmapCanvasRef} 
-                width={800} 
-                height={600} 
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Heatmap legend */}
-              <div className="absolute bottom-4 right-4 bg-[var(--cyber-dark)] bg-opacity-80 p-3 rounded-lg border border-[var(--cyber-cyan)]/30">
-                <h4 className="text-sm font-medium text-[var(--cyber-cyan)] mb-2">Density Legend</h4>
-                <div className="flex flex-col space-y-1">
-                  {Object.entries(sectorColors).map(([key, color]) => (
-                    activeFilters[key] && (
-                      <div key={key} className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                        <span className="text-xs capitalize">{key}</span>
-                      </div>
-                    )
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex flex-wrap gap-3 justify-end">
-              <CyberButton onClick={() => exportData("heatmap", "png")} variant="default">
-                Export as PNG
-              </CyberButton>
-              <CyberButton onClick={() => exportData("heatmap", "pdf")} variant="default">
-                Export as PDF
-              </CyberButton>
-            </div>
-          </TabsContent>
 
           {/* ANALYTICS DASHBOARD */}
           <TabsContent value="charts" className="space-y-6">
@@ -1202,7 +1085,9 @@ export default function MapsPage() {
                 <SciFiCard className="p-5 h-full">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-medium text-[var(--cyber-cyan)]">Development Progress by Region</h3>
-                    <Select defaultValue="all" onValueChange={(value) => handleRegionChange(value)}>
+                    <Select 
+                      defaultValue="all" 
+                      onValueChange={(value: string) => handleRegionChange(value as RegionType)}>
                       <SelectTrigger className="w-[150px] border-[var(--cyber-cyan)]/30 bg-[var(--cyber-dark)]">
                         <SelectValue placeholder="Region" />
                       </SelectTrigger>
