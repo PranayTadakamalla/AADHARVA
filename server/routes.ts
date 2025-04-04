@@ -11,13 +11,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/config/maps", (req, res) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     
-    if (!apiKey) {
-      return res.status(500).json({ 
-        error: "Google Maps API key not configured" 
+    if (!apiKey || apiKey.trim() === "") {
+      return res.status(404).json({ 
+        error: "Google Maps API key not configured", 
+        message: "Please provide a valid Google Maps API key to enable the map functionality.",
+        fallbackAvailable: true
       });
     }
     
-    return res.json({ apiKey });
+    return res.json({ apiKey, status: "success" });
   });
 
   // Gemini AI API endpoints

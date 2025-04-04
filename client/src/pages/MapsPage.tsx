@@ -94,8 +94,12 @@ function generateRandomDataPoints(sector: string, color: string, count: number):
 }
 
 export default function MapsPage() {
-  const [activeRegion, setActiveRegion] = useState<string>("all");
-  const [activeFilters, setActiveFilters] = useState<{[key: string]: boolean}>({
+  // Define the types for our state variables
+  type RegionType = "all" | "north" | "south" | "east" | "west" | "central";
+  type FiltersType = {[key: string]: boolean};
+  
+  const [activeRegion, setActiveRegion] = useState<RegionType>("all");
+  const [activeFilters, setActiveFilters] = useState<FiltersType>({
     water: true,
     agriculture: true,
     education: true,
@@ -132,14 +136,32 @@ export default function MapsPage() {
     renderHeatmap();
   }, [heatmapData]);
 
+  // Fetch Google Maps API key from server
   useEffect(() => {
-    // Check if Google Maps API key is available
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-    if (!apiKey || apiKey.trim() === "") {
-      console.error("Google Maps API key not found. Map functionality will be limited.");
-      createMockMap();
-      return;
-    }
+    const fetchApiKey = async () => {
+      try {
+        const response = await fetch('/api/config/maps');
+        const data = await response.json();
+        
+        if (response.ok && data.apiKey) {
+          loadGoogleMaps(data.apiKey);
+        } else {
+          console.error("Failed to get valid Google Maps API key. Using fallback map.");
+          // Display a notification in the console about API key
+          console.info("To enable full map functionality, please provide a valid Google Maps API key.");
+          createMockMap();
+        }
+      } catch (error) {
+        console.error("Error fetching Google Maps API key:", error);
+        createMockMap();
+      }
+    };
+    
+    fetchApiKey();
+  }, []);
+  
+  // Function to load Google Maps with API key
+  const loadGoogleMaps = (apiKey: string) => {
     
     // Check if we already have the map script loaded
     if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
@@ -184,11 +206,18 @@ export default function MapsPage() {
             createMockMap();
           }
         }, 2000); // Reduced timeout for faster fallback
-        
-        return () => clearTimeout(timeout);
       }
     } catch (error) {
       console.error("Error setting up map:", error);
+      createMockMap();
+    }
+  };
+  
+  // Effect to update the map when filters or region change
+  useEffect(() => {
+    if (window.google && mapRef.current) {
+      initializeMap();
+    } else if (mapRef.current) {
       createMockMap();
     }
   }, [activeRegion, activeFilters]);
@@ -991,7 +1020,7 @@ export default function MapsPage() {
 
   // Filter components
   // Update region filter and recreate map if needed
-  const handleRegionChange = (region: string) => {
+  const handleRegionChange = (region: RegionType) => {
     setActiveRegion(region);
     
     // If we're using the mock map, recreate it with the new region filter
