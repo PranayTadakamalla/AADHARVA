@@ -9,7 +9,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Google Maps API Key endpoint
   app.get("/api/config/maps", (req, res) => {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY || "AIzaSyACkxwm1rk-A1vSettc-eDQ6ci7bR7T3Vk";
     
     if (!apiKey || apiKey.trim() === "") {
       return res.status(404).json({ 

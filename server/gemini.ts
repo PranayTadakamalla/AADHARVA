@@ -1,7 +1,7 @@
 export async function getGeminiResponse(message: string): Promise<string> {
   try {
     // Using process.env for server-side access to environment variables
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || "AIzaSyBuyi0CUDF8GCzEjjPUxj7FmXDMkVUpz9g";
     
     if (!apiKey) {
       console.warn("Gemini API key not found, using fallback responses");
