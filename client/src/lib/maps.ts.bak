@@ -158,51 +158,6 @@ function createMapButton(text: string): HTMLButtonElement {
   return button;
 }
 
-// Function to add a basic map point
-function addMapPoint(mapElement: HTMLElement, x: number, y: number, color: string, title: string): void {
-  const point = document.createElement("div");
-  point.style.position = "absolute";
-  point.style.left = `${x}%`;
-  point.style.top = `${y}%`;
-  point.style.width = "12px";
-  point.style.height = "12px";
-  point.style.borderRadius = "50%";
-  point.style.backgroundColor = color;
-  point.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
-  point.style.transform = "translate(-50%, -50%)";
-  point.style.animation = "pulse 2s infinite";
-  point.title = title;
-  
-  // Add tooltip capabilities
-  point.addEventListener("mouseenter", function() {
-    const tooltip = document.createElement("div");
-    tooltip.className = "map-tooltip";
-    tooltip.style.position = "absolute";
-    tooltip.style.left = `calc(${x}% + 10px)`;
-    tooltip.style.top = `${y}%`;
-    tooltip.style.backgroundColor = "rgba(15, 23, 42, 0.9)";
-    tooltip.style.color = "#fff";
-    tooltip.style.padding = "5px 10px";
-    tooltip.style.borderRadius = "4px";
-    tooltip.style.fontSize = "12px";
-    tooltip.style.zIndex = "100";
-    tooltip.style.whiteSpace = "nowrap";
-    tooltip.textContent = title;
-    mapElement.appendChild(tooltip);
-    point.dataset.tooltip = "active";
-  });
-  
-  point.addEventListener("mouseleave", function() {
-    const tooltip = mapElement.querySelector(".map-tooltip");
-    if (tooltip) {
-      mapElement.removeChild(tooltip);
-    }
-    delete point.dataset.tooltip;
-  });
-  
-  mapElement.appendChild(point);
-}
-
 // Sample data points for the map
 const sampleLocations: MapPoint[] = [
   { lat: 20.5937, lng: 78.9629, color: "#0affff", type: "water", title: "Water Purification Plant" },
@@ -234,7 +189,6 @@ function createMockMap(mapElement: HTMLElement): void {
   mapElement.style.position = "relative";
   mapElement.style.backgroundColor = "#070b14"; // Dark background
   mapElement.style.overflow = "hidden";
-  mapElement.style.height = "100%";
   
   // Add sci-fi map background (India outline)
   const mapBackground = document.createElement("div");
@@ -403,6 +357,202 @@ function createMockMap(mapElement: HTMLElement): void {
   controls.appendChild(resetBtn);
   
   mapElement.appendChild(controls);
+}
+
+function addMapPoint(mapElement: HTMLElement, x: number, y: number, color: string, title: string): void {
+  const point = document.createElement("div");
+  point.style.position = "absolute";
+  point.style.left = `${x}%`;
+  point.style.top = `${y}%`;
+  point.style.width = "12px";
+  point.style.height = "12px";
+  point.style.borderRadius = "50%";
+  point.style.backgroundColor = color;
+  point.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+  point.style.transform = "translate(-50%, -50%)";
+  point.style.animation = "pulse 2s infinite";
+  point.title = title;
+  
+  // Add tooltip capabilities
+  point.addEventListener("mouseenter", function() {
+    const tooltip = document.createElement("div");
+    tooltip.className = "map-tooltip";
+    tooltip.style.position = "absolute";
+    tooltip.style.left = `calc(${x}% + 10px)`;
+    tooltip.style.top = `${y}%`;
+    tooltip.style.backgroundColor = "rgba(15, 23, 42, 0.9)";
+    tooltip.style.color = "#fff";
+    tooltip.style.padding = "5px 10px";
+    tooltip.style.borderRadius = "4px";
+    tooltip.style.fontSize = "12px";
+    tooltip.style.zIndex = "100";
+    tooltip.style.whiteSpace = "nowrap";
+    tooltip.textContent = title;
+    mapElement.appendChild(tooltip);
+    point.dataset.tooltip = "active";
+  });
+  
+  point.addEventListener("mouseleave", function() {
+    const tooltip = mapElement.querySelector(".map-tooltip");
+    if (tooltip) {
+      mapElement.removeChild(tooltip);
+    }
+    delete point.dataset.tooltip;
+  });
+  
+  mapElement.appendChild(point);
+}
+
+// Add enhanced map point with more detailed tooltip
+function addEnhancedMapPoint(mapElement: HTMLElement, project: any): void {
+  const point = document.createElement("div");
+  point.style.position = "absolute";
+  point.style.left = `${project.x}%`;
+  point.style.top = `${project.y}%`;
+  point.style.width = "15px";
+  point.style.height = "15px";
+  point.style.borderRadius = "50%";
+  point.style.backgroundColor = project.color;
+  point.style.boxShadow = `0 0 10px ${project.color}, 0 0 20px ${project.color}`;
+  point.style.transform = "translate(-50%, -50%)";
+  point.style.cursor = "pointer";
+  point.style.zIndex = "50";
+  
+  // Add pulsing animation
+  point.style.animation = "2.5s ease-out 0s infinite normal none running pulse";
+  
+  // Create keyframes for pulse animation if not already present
+  if (!document.getElementById("map-point-pulse")) {
+    const style = document.createElement("style");
+    style.id = "map-point-pulse";
+    style.textContent = `
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(10, 255, 255, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(10, 255, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(10, 255, 255, 0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Add tooltip capabilities with enhanced content
+  point.addEventListener("mouseenter", function() {
+    const tooltip = document.createElement("div");
+    tooltip.className = "map-tooltip";
+    tooltip.style.position = "absolute";
+    tooltip.style.left = `calc(${project.x}% + 15px)`;
+    tooltip.style.top = `${project.y}%`;
+    tooltip.style.backgroundColor = "rgba(15, 23, 42, 0.9)";
+    tooltip.style.color = "#fff";
+    tooltip.style.padding = "12px";
+    tooltip.style.borderRadius = "6px";
+    tooltip.style.fontSize = "12px";
+    tooltip.style.zIndex = "100";
+    tooltip.style.width = "240px";
+    tooltip.style.transform = "translateY(-50%)";
+    tooltip.style.boxShadow = `0 0 15px rgba(${project.color.slice(1).match(/.{2}/g)?.map((x: string) => parseInt(x, 16)).join(", ")}, 0.3)`;
+    tooltip.style.border = `1px solid ${project.color}`;
+    
+    // Create fancy sci-fi style tooltip content
+    tooltip.innerHTML = `
+      <div style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px;">
+        <div style="color: ${project.color}; font-weight: bold; font-size: 14px; margin-bottom: 2px;">
+          ${project.title}
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #a0aec0;">
+          <span>${project.type.toUpperCase()}</span>
+          <span style="color: ${project.color}; font-weight: bold;">
+            ${project.status.toUpperCase()}
+          </span>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+          <span style="font-size: 11px; color: #a0aec0;">Progress:</span>
+          <span style="font-size: 11px; color: #fff;">${project.progress}%</span>
+        </div>
+        <div style="height: 4px; width: 100%; background-color: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+          <div style="height: 100%; width: ${project.progress}%; background-color: ${project.color};"></div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 5px; display: flex; justify-content: space-between; font-size: 11px;">
+        <span style="color: #a0aec0;">Budget:</span>
+        <span style="color: #fff;">${project.budget}</span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; font-size: 11px;">
+        <span style="color: #a0aec0;">Beneficiaries:</span>
+        <span style="color: #fff;">${project.beneficiaries}</span>
+      </div>
+      
+      <div style="margin-top: 10px; text-align: center; font-size: 10px; color: ${project.color};">
+        Click for detailed analytics
+      </div>
+    `;
+    
+    mapElement.appendChild(tooltip);
+    point.dataset.tooltip = "active";
+  });
+  
+  point.addEventListener("mouseleave", function() {
+    const tooltip = mapElement.querySelector(".map-tooltip");
+    if (tooltip) {
+      mapElement.removeChild(tooltip);
+    }
+    delete point.dataset.tooltip;
+  });
+  
+  // Add click event to show detailed project information
+  point.addEventListener("click", function() {
+    alert(`Detailed analytics for ${project.title} project will be displayed here`);
+  });
+  
+  mapElement.appendChild(point);
+}
+
+// Add region label to the map
+function addRegionLabel(mapElement: HTMLElement, x: number, y: number, label: string): void {
+  const labelElem = document.createElement("div");
+  labelElem.style.position = "absolute";
+  labelElem.style.left = `${x}%`;
+  labelElem.style.top = `${y}%`;
+  labelElem.style.transform = "translate(-50%, -50%)";
+  labelElem.style.color = "rgba(255, 255, 255, 0.6)";
+  labelElem.style.fontSize = "12px";
+  labelElem.style.fontWeight = "bold";
+  labelElem.style.textShadow = "0 0 5px rgba(0, 0, 0, 0.5)";
+  labelElem.style.pointerEvents = "none";
+  labelElem.textContent = label;
+  mapElement.appendChild(labelElem);
+}
+
+// Create a map control button
+function createMapButton(text: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.style.width = "30px";
+  button.style.height = "30px";
+  button.style.backgroundColor = "rgba(10, 255, 255, 0.2)";
+  button.style.border = "1px solid rgba(10, 255, 255, 0.4)";
+  button.style.borderRadius = "4px";
+  button.style.color = "#0affff";
+  button.style.fontSize = "14px";
+  button.style.display = "flex";
+  button.style.alignItems = "center";
+  button.style.justifyContent = "center";
+  button.style.cursor = "pointer";
+  button.textContent = text;
+  
+  button.addEventListener("mouseenter", () => {
+    button.style.backgroundColor = "rgba(10, 255, 255, 0.3)";
+  });
+  
+  button.addEventListener("mouseleave", () => {
+    button.style.backgroundColor = "rgba(10, 255, 255, 0.2)";
+  });
+  
+  return button;
 }
 
 // Custom map styles for sci-fi appearance
