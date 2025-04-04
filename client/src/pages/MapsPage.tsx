@@ -4,6 +4,9 @@ import Footer from "@/components/Footer";
 import { SciFiCard } from "@/components/ui/sci-fi-card";
 import { CyberButton } from "@/components/ui/cyber-button";
 import { apiRequest } from "@/lib/queryClient";
+import { useActions } from "@/hooks/use-actions";
+import { Button } from "@/components/ui/button";
+import { Download, Share, FileText, Printer, BarChart } from "lucide-react";
 
 // Add Google Maps type definitions
 declare global {
@@ -14,6 +17,7 @@ declare global {
 }
 
 export default function MapsPage() {
+  const { downloadReport, exportData, shareContent } = useActions();
   const [activeTab, setActiveTab] = useState("projects");
   const [activeRegion, setActiveRegion] = useState("all");
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -478,7 +482,39 @@ export default function MapsPage() {
                   </div>
                 </div>
                 
-                <div className="md:col-span-6">
+                <div className="md:col-span-6 flex flex-col">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-rajdhani text-[var(--cyber-cyan)]">Project Map View</h3>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                        onClick={() => downloadReport('Development Projects', activeRegion !== 'all' ? activeRegion : undefined)}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download Report
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                        onClick={() => exportData('Project Data', 'csv')}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Export Data
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                        onClick={() => shareContent('Rural Development Map')}
+                      >
+                        <Share className="mr-2 h-4 w-4" />
+                        Share
+                      </Button>
+                    </div>
+                  </div>
                   <div 
                     ref={mapRef} 
                     className="w-full h-[500px] rounded-lg border border-[var(--cyber-cyan)] border-opacity-50"
@@ -512,7 +548,38 @@ export default function MapsPage() {
 
           {activeTab === "analytics" && (
             <SciFiCard>
-              <h2 className="text-2xl font-rajdhani font-semibold text-[var(--cyber-cyan)] mb-4">Impact Analytics</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-rajdhani font-semibold text-[var(--cyber-cyan)]">Impact Analytics</h2>
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                    onClick={() => downloadReport('Impact Analytics')}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Report
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                    onClick={() => exportData('Impact Data', 'excel')}
+                  >
+                    <BarChart className="mr-2 h-4 w-4" />
+                    Export Charts
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                    onClick={() => shareContent('Rural Development Impact Analytics')}
+                  >
+                    <Share className="mr-2 h-4 w-4" />
+                    Share
+                  </Button>
+                </div>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-[var(--cyber-blue)] p-4 rounded-lg border border-[var(--cyber-cyan)] border-opacity-30">
@@ -717,7 +784,38 @@ export default function MapsPage() {
 
           {activeTab === "resources" && (
             <SciFiCard>
-              <h2 className="text-2xl font-rajdhani font-semibold text-[var(--cyber-cyan)] mb-4">Resource Allocation</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-rajdhani font-semibold text-[var(--cyber-cyan)]">Resource Allocation</h2>
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                    onClick={() => downloadReport('Resource Allocation')}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Report
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                    onClick={() => exportData('Resource Data', 'pdf')}
+                  >
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Data
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-[var(--cyber-blue)] border-[var(--cyber-cyan)] hover:bg-[var(--cyber-darkest)]"
+                    onClick={() => shareContent('Rural Development Resource Allocation')}
+                  >
+                    <Share className="mr-2 h-4 w-4" />
+                    Share
+                  </Button>
+                </div>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-[var(--cyber-blue)] p-4 rounded-lg">

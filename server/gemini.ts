@@ -33,7 +33,7 @@ export async function getGeminiResponse(message: string): Promise<string> {
     
     // Make the API call to Gemini
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {
