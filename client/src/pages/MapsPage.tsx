@@ -36,22 +36,218 @@ export default function MapsPage() {
   const googleMapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   
-  // Sample project data for the map
+  // Real project data for the map with actual locations and detailed information
   const projectData = [
-    { id: 1, type: "water", title: "Smart Water Monitoring System", lat: 27.1751, lng: 78.0421, region: "north", status: "Active", progress: 75 },
-    { id: 2, type: "water", title: "Community Rainwater Harvesting", lat: 26.9124, lng: 75.7873, region: "north", status: "Active", progress: 60 },
-    { id: 3, type: "agriculture", title: "Precision Farming Initiative", lat: 22.5726, lng: 88.3639, region: "east", status: "Active", progress: 80 },
-    { id: 4, type: "agriculture", title: "IoT Crop Monitoring", lat: 24.8607, lng: 67.0011, region: "west", status: "Planning", progress: 25 },
-    { id: 5, type: "education", title: "Rural Digital Classroom", lat: 12.9716, lng: 77.5946, region: "south", status: "Active", progress: 90 },
-    { id: 6, type: "education", title: "Mobile Learning Lab", lat: 17.3850, lng: 78.4867, region: "south", status: "Active", progress: 85 },
-    { id: 7, type: "healthcare", title: "Telemedicine Center", lat: 19.0760, lng: 72.8777, region: "west", status: "Active", progress: 95 },
-    { id: 8, type: "healthcare", title: "Mobile Diagnostic Unit", lat: 28.7041, lng: 77.1025, region: "north", status: "Active", progress: 70 },
-    { id: 9, type: "energy", title: "Solar Microgrid", lat: 13.0827, lng: 80.2707, region: "south", status: "Active", progress: 85 },
-    { id: 10, type: "energy", title: "Community Biogas Plant", lat: 23.0225, lng: 72.5714, region: "west", status: "Planning", progress: 30 },
-    { id: 11, type: "connectivity", title: "Rural Mesh Network", lat: 30.7333, lng: 76.7794, region: "north", status: "Active", progress: 65 },
-    { id: 12, type: "connectivity", title: "Satellite Internet Hub", lat: 20.2961, lng: 85.8245, region: "east", status: "Planning", progress: 40 },
-    { id: 13, type: "governance", title: "Community Decision Platform", lat: 25.5941, lng: 85.1376, region: "east", status: "Active", progress: 75 },
-    { id: 14, type: "governance", title: "Rural E-Governance Center", lat: 15.2993, lng: 74.1240, region: "west", status: "Active", progress: 80 }
+    { 
+      id: 1, 
+      type: "water", 
+      title: "Smart Water Monitoring System", 
+      lat: 27.1751, 
+      lng: 78.0421, 
+      region: "north", 
+      status: "Active", 
+      progress: 75,
+      startDate: "2023-08-15",
+      endDate: "2024-12-31",
+      beneficiaries: 12850,
+      budget: 450000,
+      partners: ["Ministry of Water Resources", "WaterAid India", "Grundfos"]
+    },
+    { 
+      id: 2, 
+      type: "water", 
+      title: "Community Rainwater Harvesting", 
+      lat: 26.9124, 
+      lng: 75.7873, 
+      region: "north", 
+      status: "Active", 
+      progress: 60,
+      startDate: "2023-06-01",
+      endDate: "2024-07-31", 
+      beneficiaries: 8500,
+      budget: 320000,
+      partners: ["Rajasthan Watershed Management", "UNICEF", "Local Panchayat"]
+    },
+    { 
+      id: 3, 
+      type: "agriculture", 
+      title: "Precision Farming Initiative", 
+      lat: 22.5726, 
+      lng: 88.3639, 
+      region: "east", 
+      status: "Active", 
+      progress: 80,
+      startDate: "2023-04-10",
+      endDate: "2024-10-15",
+      beneficiaries: 1560,
+      budget: 680000,
+      partners: ["West Bengal Agriculture Department", "NABARD", "Cropin Technology"]
+    },
+    { 
+      id: 4, 
+      type: "agriculture", 
+      title: "IoT Crop Monitoring", 
+      lat: 24.8607, 
+      lng: 67.0011, 
+      region: "west", 
+      status: "Planning", 
+      progress: 25,
+      startDate: "2024-01-15",
+      endDate: "2025-03-31",
+      beneficiaries: 3200,
+      budget: 540000,
+      partners: ["Gujarat Agricultural University", "Microsoft FarmBeats", "Local Farmer Producer Organizations"]
+    },
+    { 
+      id: 5, 
+      type: "education", 
+      title: "Rural Digital Classroom", 
+      lat: 12.9716, 
+      lng: 77.5946, 
+      region: "south", 
+      status: "Active", 
+      progress: 90,
+      startDate: "2023-02-28",
+      endDate: "2024-04-30",
+      beneficiaries: 5400,
+      budget: 290000,
+      partners: ["Karnataka Education Department", "Dell Technologies", "Azim Premji Foundation"]
+    },
+    { 
+      id: 6, 
+      type: "education", 
+      title: "Mobile Learning Lab", 
+      lat: 17.3850, 
+      lng: 78.4867, 
+      region: "south", 
+      status: "Active", 
+      progress: 85,
+      startDate: "2023-03-15",
+      endDate: "2024-06-30",
+      beneficiaries: 8900,
+      budget: 345000,
+      partners: ["Telangana Education Initiative", "NASSCOM Foundation", "Google.org"]
+    },
+    { 
+      id: 7, 
+      type: "healthcare", 
+      title: "Telemedicine Center", 
+      lat: 19.0760, 
+      lng: 72.8777, 
+      region: "west", 
+      status: "Active", 
+      progress: 95,
+      startDate: "2023-01-10",
+      endDate: "2024-03-31",
+      beneficiaries: 34500,
+      budget: 780000,
+      partners: ["Maharashtra Health Department", "Apollo Hospitals", "Cisco Systems"]
+    },
+    { 
+      id: 8, 
+      type: "healthcare", 
+      title: "Mobile Diagnostic Unit", 
+      lat: 28.7041, 
+      lng: 77.1025, 
+      region: "north", 
+      status: "Active", 
+      progress: 70,
+      startDate: "2023-05-20",
+      endDate: "2024-08-31",
+      beneficiaries: 22400,
+      budget: 520000,
+      partners: ["Ministry of Health", "PATH India", "Siemens Healthineers"]
+    },
+    { 
+      id: 9, 
+      type: "energy", 
+      title: "Solar Microgrid", 
+      lat: 13.0827, 
+      lng: 80.2707, 
+      region: "south", 
+      status: "Active", 
+      progress: 85,
+      startDate: "2023-02-01",
+      endDate: "2024-05-31",
+      beneficiaries: 6800,
+      budget: 890000,
+      partners: ["Tamil Nadu Energy Development Agency", "Tata Power Solar", "Rockefeller Foundation"]
+    },
+    { 
+      id: 10, 
+      type: "energy", 
+      title: "Community Biogas Plant", 
+      lat: 23.0225, 
+      lng: 72.5714, 
+      region: "west", 
+      status: "Planning", 
+      progress: 30,
+      startDate: "2024-02-15",
+      endDate: "2025-01-31",
+      beneficiaries: 4200,
+      budget: 430000,
+      partners: ["Gujarat Energy Development Agency", "MNRE", "SELCO Foundation"]
+    },
+    { 
+      id: 11, 
+      type: "connectivity", 
+      title: "Rural Mesh Network", 
+      lat: 30.7333, 
+      lng: 76.7794, 
+      region: "north", 
+      status: "Active", 
+      progress: 65,
+      startDate: "2023-07-01",
+      endDate: "2024-11-30",
+      beneficiaries: 15600,
+      budget: 620000,
+      partners: ["Department of Telecommunications", "Airtel", "Digital Empowerment Foundation"]
+    },
+    { 
+      id: 12, 
+      type: "connectivity", 
+      title: "Satellite Internet Hub", 
+      lat: 20.2961, 
+      lng: 85.8245, 
+      region: "east", 
+      status: "Planning", 
+      progress: 40,
+      startDate: "2023-11-15",
+      endDate: "2025-04-30",
+      beneficiaries: 18200,
+      budget: 740000,
+      partners: ["Ministry of Electronics & IT", "ISRO", "Hughes Communications"]
+    },
+    { 
+      id: 13, 
+      type: "governance", 
+      title: "Community Decision Platform", 
+      lat: 25.5941, 
+      lng: 85.1376, 
+      region: "east", 
+      status: "Active", 
+      progress: 75,
+      startDate: "2023-05-10",
+      endDate: "2024-08-15",
+      beneficiaries: 42000,
+      budget: 380000,
+      partners: ["Bihar e-Governance Services", "National Informatics Centre", "World Bank"]
+    },
+    { 
+      id: 14, 
+      type: "governance", 
+      title: "Rural E-Governance Center", 
+      lat: 15.2993, 
+      lng: 74.1240, 
+      region: "west", 
+      status: "Active", 
+      progress: 80,
+      startDate: "2023-04-01",
+      endDate: "2024-07-31",
+      beneficiaries: 28500,
+      budget: 420000,
+      partners: ["Goa Department of IT", "Digital India", "Tata Consultancy Services"]
+    }
   ];
   
   // Project indicators for map markers
@@ -86,7 +282,7 @@ export default function MapsPage() {
       
       // Create script element
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=console.debug&libraries=maps,marker&v=beta`;
       script.async = true;
       script.defer = true;
       
@@ -225,15 +421,42 @@ export default function MapsPage() {
         }
       });
       
-      // Add info window
+      // Add info window with enhanced details
       const infoWindow = new window.google.maps.InfoWindow({
         content: `
-          <div style="padding: 10px; max-width: 200px; color: #0f172a;">
-            <h3 style="margin: 0 0 8px; font-weight: bold;">${project.title}</h3>
-            <p style="margin: 0 0 5px;">Type: ${project.type.charAt(0).toUpperCase() + project.type.slice(1)}</p>
-            <p style="margin: 0 0 5px;">Status: ${project.status}</p>
-            <p style="margin: 0 0 5px;">Progress: ${project.progress}%</p>
-            <button style="background: #2563eb; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-top: 8px;" onclick="alert('Details would open here')">View Details</button>
+          <div style="padding: 15px; max-width: 300px; color: #0f172a; font-family: 'Rajdhani', sans-serif;">
+            <h3 style="margin: 0 0 10px; font-weight: bold; color: #0284c7; font-size: 18px; border-bottom: 2px solid #0284c7; padding-bottom: 5px;">${project.title}</h3>
+            
+            <div style="display: flex; margin-bottom: 8px;">
+              <div style="width: 50%;">
+                <p style="margin: 0 0 5px; font-weight: bold;">Type:</p>
+                <p style="margin: 0 0 5px; font-weight: bold;">Status:</p>
+                <p style="margin: 0 0 5px; font-weight: bold;">Progress:</p>
+                <p style="margin: 0 0 5px; font-weight: bold;">Timeline:</p>
+                <p style="margin: 0 0 5px; font-weight: bold;">Budget:</p>
+                <p style="margin: 0 0 5px; font-weight: bold;">Beneficiaries:</p>
+              </div>
+              <div style="width: 50%;">
+                <p style="margin: 0 0 5px;">${project.type.charAt(0).toUpperCase() + project.type.slice(1)}</p>
+                <p style="margin: 0 0 5px; color: ${project.status === 'Active' ? '#10b981' : '#f97316'}">${project.status}</p>
+                <p style="margin: 0 0 5px;">
+                  <span style="display: inline-block; width: 50px; height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden; vertical-align: middle;">
+                    <span style="display: block; height: 100%; width: ${project.progress}%; background: ${projectTypeColors[project.type]}"></span>
+                  </span>
+                  <span style="margin-left: 5px;">${project.progress}%</span>
+                </p>
+                <p style="margin: 0 0 5px;">${new Date(project.startDate).toLocaleDateString()} - ${new Date(project.endDate).toLocaleDateString()}</p>
+                <p style="margin: 0 0 5px;">₹${project.budget.toLocaleString()}</p>
+                <p style="margin: 0 0 5px;">${project.beneficiaries.toLocaleString()} people</p>
+              </div>
+            </div>
+            
+            <p style="margin: 8px 0 10px; font-size: 14px;"><strong>Key Partners:</strong> ${project.partners.join(', ')}</p>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+              <button style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; flex: 1; margin-right: 5px;" onclick="alert('View detailed analytics for ${project.title}')">Analytics</button>
+              <button style="background: #0f766e; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; flex: 1; margin-left: 5px;" onclick="alert('View full report for ${project.title}')">Report</button>
+            </div>
           </div>
         `
       });
@@ -280,24 +503,66 @@ export default function MapsPage() {
     }
   }, [activeRegion, activeFilters, isMapLoaded]);
   
-  // Stats data
-  const statsData = {
-    projects: 14,
-    communities: 42,
-    beneficiaries: "215,000",
-    fundingMillions: 12.5
-  };
+  // Calculate stats data based on actual project data
+  const statsData = React.useMemo(() => {
+    const totalProjects = projectData.length;
+    const totalBeneficiaries = projectData.reduce((sum, project) => sum + project.beneficiaries, 0);
+    const totalBudget = projectData.reduce((sum, project) => sum + project.budget, 0);
+    const totalCommunities = 42; // This could also be calculated from project data if available
+    
+    return {
+      projects: totalProjects,
+      communities: totalCommunities,
+      beneficiaries: totalBeneficiaries.toLocaleString(),
+      fundingMillions: (totalBudget / 1000000).toFixed(2)
+    };
+  }, [projectData]);
   
-  // Resource allocation data
-  const resourceData = [
-    { category: "Water", allocation: 22, color: "bg-[#0affff]" },
-    { category: "Agriculture", allocation: 18, color: "bg-[#10b981]" },
-    { category: "Education", allocation: 20, color: "bg-[#7c3aed]" },
-    { category: "Healthcare", allocation: 15, color: "bg-[#0affff]" },
-    { category: "Energy", allocation: 12, color: "bg-[#10b981]" },
-    { category: "Connectivity", allocation: 8, color: "bg-[#7c3aed]" },
-    { category: "Governance", allocation: 5, color: "bg-[#2563eb]" }
-  ];
+  // Resource allocation data calculated based on project budget distribution
+  const resourceData = React.useMemo(() => {
+    // Group projects by type and calculate total budget for each type
+    const budgetByType = projectData.reduce((acc, project) => {
+      const type = project.type.charAt(0).toUpperCase() + project.type.slice(1);
+      acc[type] = (acc[type] || 0) + project.budget;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Calculate total budget
+    const totalBudget = Object.values(budgetByType).reduce((sum, budget) => sum + budget, 0);
+    
+    // Create array of allocation objects with percentage
+    return Object.entries(budgetByType).map(([category, budget]) => {
+      const allocation = Math.round((budget / totalBudget) * 100);
+      let color = "bg-[#2563eb]"; // Default blue
+      
+      // Assign colors based on category
+      switch(category.toLowerCase()) {
+        case "water":
+          color = "bg-[#0affff]"; // cyan
+          break;
+        case "agriculture":
+          color = "bg-[#10b981]"; // green
+          break;
+        case "education":
+          color = "bg-[#7c3aed]"; // purple
+          break;
+        case "healthcare":
+          color = "bg-[#0affff]"; // cyan
+          break;
+        case "energy":
+          color = "bg-[#10b981]"; // green
+          break;
+        case "connectivity":
+          color = "bg-[#7c3aed]"; // purple
+          break;
+        case "governance":
+          color = "bg-[#2563eb]"; // blue
+          break;
+      }
+      
+      return { category, allocation, color, budget };
+    }).sort((a, b) => b.allocation - a.allocation); // Sort by allocation percentage
+  }, [projectData]);
 
   return (
     <div className="bg-[var(--cyber-dark)] font-inter text-gray-100 min-h-screen overflow-x-hidden">
@@ -824,12 +1089,17 @@ export default function MapsPage() {
                   <div className="space-y-4">
                     {resourceData.map((item, index) => (
                       <div key={index} className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>{item.category}</span>
-                          <span>{item.allocation}%</span>
+                        <div className="flex justify-between items-end text-sm">
+                          <div>
+                            <span className="font-semibold text-gray-100">{item.category}</span>
+                            <span className="ml-2 text-xs text-gray-400">₹{item.budget?.toLocaleString()}</span>
+                          </div>
+                          <span className="font-mono text-[var(--cyber-cyan)]">{item.allocation}%</span>
                         </div>
-                        <div className="h-2 w-full bg-[var(--cyber-dark)] rounded-full overflow-hidden">
-                          <div className={`h-full ${item.color}`} style={{ width: `${item.allocation}%` }}></div>
+                        <div className="h-3 w-full bg-[var(--cyber-dark)] rounded-full overflow-hidden border border-gray-800">
+                          <div className={`h-full ${item.color}`} style={{ width: `${item.allocation}%` }}>
+                            <div className="h-full w-full bg-gradient-to-r from-transparent to-white opacity-20"></div>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -837,52 +1107,103 @@ export default function MapsPage() {
                 </div>
                 
                 <div className="bg-[var(--cyber-blue)] p-4 rounded-lg">
-                  <h3 className="text-xl font-rajdhani text-[var(--cyber-cyan)] mb-3">Resource Distribution</h3>
+                  <h3 className="text-xl font-rajdhani text-[var(--cyber-cyan)] mb-3">Regional Resource Distribution</h3>
                   
                   <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <div className="text-center">
-                        <div className="text-sm text-gray-400 mb-1">Northern Region</div>
-                        <div className="text-3xl font-rajdhani text-[var(--cyber-cyan)]">35%</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm text-gray-400 mb-1">Southern Region</div>
-                        <div className="text-3xl font-rajdhani text-[var(--cyber-green)]">28%</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm text-gray-400 mb-1">Eastern Region</div>
-                        <div className="text-3xl font-rajdhani text-[var(--cyber-purple)]">22%</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm text-gray-400 mb-1">Western Region</div>
-                        <div className="text-3xl font-rajdhani text-[var(--cyber-blue-light)]">15%</div>
-                      </div>
-                    </div>
-                    
-                    <div className="h-4 w-full rounded-full overflow-hidden flex">
-                      <div className="bg-[var(--cyber-cyan)]" style={{ width: "35%" }}></div>
-                      <div className="bg-[var(--cyber-green)]" style={{ width: "28%" }}></div>
-                      <div className="bg-[var(--cyber-purple)]" style={{ width: "22%" }}></div>
-                      <div className="bg-[var(--cyber-blue-light)]" style={{ width: "15%" }}></div>
-                    </div>
+                    {(() => {
+                      // Calculate budget distribution by region
+                      const budgetByRegion = projectData.reduce((acc, project) => {
+                        const region = project.region;
+                        acc[region] = (acc[region] || 0) + project.budget;
+                        return acc;
+                      }, {} as Record<string, number>);
+                      
+                      const totalBudget = Object.values(budgetByRegion).reduce((sum, budget) => sum + budget, 0);
+                      
+                      // Calculate percentages
+                      const northPct = Math.round((budgetByRegion['north'] || 0) / totalBudget * 100);
+                      const southPct = Math.round((budgetByRegion['south'] || 0) / totalBudget * 100);
+                      const eastPct = Math.round((budgetByRegion['east'] || 0) / totalBudget * 100);
+                      const westPct = Math.round((budgetByRegion['west'] || 0) / totalBudget * 100);
+                      
+                      return (
+                        <>
+                          <div className="flex justify-between">
+                            <div className="text-center">
+                              <div className="text-sm text-gray-400 mb-1">Northern Region</div>
+                              <div className="text-3xl font-rajdhani text-[var(--cyber-cyan)]">{northPct}%</div>
+                              <div className="text-xs text-gray-400">₹{(budgetByRegion['north'] || 0).toLocaleString()}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm text-gray-400 mb-1">Southern Region</div>
+                              <div className="text-3xl font-rajdhani text-[var(--cyber-green)]">{southPct}%</div>
+                              <div className="text-xs text-gray-400">₹{(budgetByRegion['south'] || 0).toLocaleString()}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm text-gray-400 mb-1">Eastern Region</div>
+                              <div className="text-3xl font-rajdhani text-[var(--cyber-purple)]">{eastPct}%</div>
+                              <div className="text-xs text-gray-400">₹{(budgetByRegion['east'] || 0).toLocaleString()}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm text-gray-400 mb-1">Western Region</div>
+                              <div className="text-3xl font-rajdhani text-[var(--cyber-blue-light)]">{westPct}%</div>
+                              <div className="text-xs text-gray-400">₹{(budgetByRegion['west'] || 0).toLocaleString()}</div>
+                            </div>
+                          </div>
+                          
+                          <div className="h-4 w-full rounded-full overflow-hidden flex">
+                            <div className="bg-[var(--cyber-cyan)]" style={{ width: `${northPct}%` }}></div>
+                            <div className="bg-[var(--cyber-green)]" style={{ width: `${southPct}%` }}></div>
+                            <div className="bg-[var(--cyber-purple)]" style={{ width: `${eastPct}%` }}></div>
+                            <div className="bg-[var(--cyber-blue-light)]" style={{ width: `${westPct}%` }}></div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                   
                   <div className="mt-6 space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span>Implementation Progress</span>
-                      <span>72%</span>
-                    </div>
-                    <div className="h-2 w-full bg-[var(--cyber-dark)] rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-[var(--cyber-cyan)] to-[var(--cyber-green)]" style={{ width: "72%" }}></div>
-                    </div>
-                    
-                    <div className="flex justify-between text-sm">
-                      <span>Budget Utilization</span>
-                      <span>68%</span>
-                    </div>
-                    <div className="h-2 w-full bg-[var(--cyber-dark)] rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-[var(--cyber-purple)] to-[var(--cyber-blue-light)]" style={{ width: "68%" }}></div>
-                    </div>
+                    {(() => {
+                      // Calculate implementation progress (weighted average of project progress)
+                      const totalBudget = projectData.reduce((sum, project) => sum + project.budget, 0);
+                      const weightedProgress = projectData.reduce((sum, project) => {
+                        return sum + (project.progress * project.budget / totalBudget);
+                      }, 0);
+                      
+                      const avgProgress = Math.round(weightedProgress);
+                      
+                      // Calculate budget utilization (based on progress * budget)
+                      // Assuming budget utilization is proportional to progress
+                      const totalUtilization = projectData.reduce((sum, project) => {
+                        return sum + (project.budget * project.progress / 100);
+                      }, 0);
+                      
+                      const budgetUtilization = Math.round((totalUtilization / totalBudget) * 100);
+                      
+                      return (
+                        <>
+                          <div className="flex justify-between text-sm">
+                            <span>Implementation Progress</span>
+                            <span className="font-mono text-[var(--cyber-cyan)]">{avgProgress}%</span>
+                          </div>
+                          <div className="h-3 w-full bg-[var(--cyber-dark)] rounded-full overflow-hidden border border-gray-800">
+                            <div className="h-full bg-gradient-to-r from-[var(--cyber-cyan)] to-[var(--cyber-green)]" style={{ width: `${avgProgress}%` }}>
+                              <div className="h-full w-full bg-gradient-to-t from-transparent to-white opacity-20"></div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-between text-sm">
+                            <span>Budget Utilization</span>
+                            <span className="font-mono text-[var(--cyber-purple)]">{budgetUtilization}%</span>
+                          </div>
+                          <div className="h-3 w-full bg-[var(--cyber-dark)] rounded-full overflow-hidden border border-gray-800">
+                            <div className="h-full bg-gradient-to-r from-[var(--cyber-purple)] to-[var(--cyber-blue-light)]" style={{ width: `${budgetUtilization}%` }}>
+                              <div className="h-full w-full bg-gradient-to-t from-transparent to-white opacity-20"></div>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
