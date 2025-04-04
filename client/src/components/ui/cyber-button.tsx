@@ -9,6 +9,8 @@ const cyberButtonVariants = cva(
       variant: {
         default:
           "bg-[var(--cyber-cyan)]/10 text-[var(--cyber-cyan)] border border-[var(--cyber-cyan)]/30 hover:bg-[var(--cyber-cyan)]/20",
+        outline:
+          "bg-transparent border border-[var(--cyber-cyan)]/50 text-[var(--cyber-cyan)]/80 hover:text-[var(--cyber-cyan)] hover:bg-[var(--cyber-cyan)]/10 transition-colors",
         secondary:
           "bg-transparent border border-gray-500 hover:border-[var(--cyber-cyan)]/30 text-gray-300 hover:text-[var(--cyber-cyan)] transition-colors",
         purple:

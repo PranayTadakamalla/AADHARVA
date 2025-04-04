@@ -7,6 +7,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
+  // Google Maps API Key endpoint
+  app.get("/api/config/maps", (req, res) => {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    
+    if (!apiKey) {
+      return res.status(500).json({ 
+        error: "Google Maps API key not configured" 
+      });
+    }
+    
+    return res.json({ apiKey });
+  });
+
   // Gemini AI API endpoints
   app.post("/api/gemini/chat", async (req, res) => {
     try {
