@@ -9,7 +9,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Google Maps API Key endpoint
   app.get("/api/config/maps", (req, res) => {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY || "AIzaSyACkxwm1rk-A1vSettc-eDQ6ci7bR7T3Vk";
+    // Get API key from environment variables in Vite format
+    // @ts-ignore - Vite environment variable access
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyACkxwm1rk-A1vSettc-eDQ6ci7bR7T3Vk";
     
     if (!apiKey || apiKey.trim() === "") {
       return res.status(404).json({ 
@@ -19,6 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
     
+    console.log("Providing Google Maps API key to client");
     return res.json({ apiKey, status: "success" });
   });
 

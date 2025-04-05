@@ -112,35 +112,51 @@ export default function MapsPage() {
   const [timeScale, setTimeScale] = useState<string>("yearly");
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // Fetch Google Maps API key from server
+  // Load Google Maps directly from environment variable or from server API
   useEffect(() => {
-    const fetchApiKey = async () => {
+    const loadMapsAPI = async () => {
       try {
-        const response = await fetch('/api/config/maps');
-        const data = await response.json();
+        // Try to use the API key from environment variables first (Vite format)
+        let apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
         
-        if (response.ok && data.apiKey) {
-          loadGoogleMaps(data.apiKey);
+        // If not available in environment, fetch from server
+        if (!apiKey) {
+          console.log("No API key in environment, fetching from server...");
+          const response = await fetch('/api/config/maps');
+          const data = await response.json();
+          
+          if (response.ok && data.apiKey) {
+            apiKey = data.apiKey;
+            console.log("Successfully retrieved API key from server");
+          } else {
+            console.error("Failed to get valid Google Maps API key from server");
+            createMockMap();
+            return;
+          }
+        }
+        
+        // If we have an API key, load Google Maps
+        if (apiKey) {
+          console.log("Loading Google Maps with API key...");
+          loadGoogleMapsScript(apiKey);
         } else {
-          console.error("Failed to get valid Google Maps API key. Using fallback map.");
-          // Display a notification in the console about API key
-          console.info("To enable full map functionality, please provide a valid Google Maps API key.");
+          console.error("No Google Maps API key available. Using fallback map.");
           createMockMap();
         }
       } catch (error) {
-        console.error("Error fetching Google Maps API key:", error);
+        console.error("Error loading Google Maps:", error);
         createMockMap();
       }
     };
     
-    fetchApiKey();
+    loadMapsAPI();
   }, []);
   
-  // Function to load Google Maps with API key
-  const loadGoogleMaps = (apiKey: string) => {
-    
-    // Check if we already have the map script loaded
+  // Function to load Google Maps script
+  const loadGoogleMapsScript = (apiKey: string) => {
+    // Check if we already have the script loaded
     if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
+      console.log("Google Maps script already loaded");
       if (window.google && mapRef.current) {
         initializeMap();
       } else {
@@ -150,41 +166,46 @@ export default function MapsPage() {
     }
     
     try {
-      // Initialize Google Maps if API is loaded
-      if (window.google && mapRef.current) {
-        initializeMap();
-      } else {
-        // Load Google Maps API with fallback
-        window.initMap = () => {
-          if (mapRef.current) {
-            try {
-              initializeMap();
-            } catch (error) {
-              console.error("Error initializing Google Maps:", error);
-              createMockMap();
-            }
-          }
-        };
-        
-        const script = document.createElement("script");
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&libraries=visualization,marker`;
-        script.async = true;
-        script.defer = true;
-        script.onerror = () => {
-          console.error("Google Maps API failed to load");
-          createMockMap();
-        };
-        document.head.appendChild(script);
-        
-        // Set a timeout to create mock map if Google Maps takes too long
-        const timeout = setTimeout(() => {
-          if (!window.google && mapRef.current) {
+      // Set up the callback function
+      window.initMap = () => {
+        console.log("Google Maps initialization callback triggered");
+        if (mapRef.current) {
+          try {
+            initializeMap();
+          } catch (error) {
+            console.error("Error in initMap callback:", error);
             createMockMap();
           }
-        }, 2000); // Reduced timeout for faster fallback
-      }
+        }
+      };
+      
+      // Create and append the script element
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&libraries=visualization&v=weekly`;
+      script.async = true;
+      script.defer = true;
+      
+      // Handle script loading errors
+      script.onerror = () => {
+        console.error("Google Maps script failed to load");
+        createMockMap();
+      };
+      
+      // Add the script to the document
+      document.head.appendChild(script);
+      console.log("Google Maps script added to head");
+      
+      // Set a timeout as fallback
+      const timeout = setTimeout(() => {
+        if (!window.google && mapRef.current) {
+          console.error("Google Maps script loading timed out");
+          createMockMap();
+        }
+      }, 5000); // 5 second timeout
+      
+      return () => clearTimeout(timeout);
     } catch (error) {
-      console.error("Error setting up map:", error);
+      console.error("Error setting up Google Maps script:", error);
       createMockMap();
     }
   };
@@ -569,6 +590,29 @@ export default function MapsPage() {
     mapElement.style.backgroundColor = '#0e1626';
     mapElement.style.position = 'relative';
     mapElement.style.overflow = 'hidden';
+    
+    // Add CSS for animations if not present
+    if (!document.getElementById('map-animation-styles')) {
+      const styleSheet = document.createElement('style');
+      styleSheet.id = 'map-animation-styles';
+      styleSheet.innerHTML = `
+        .map-grid-line {
+          position: absolute;
+          background-color: rgba(75, 104, 120, 0.3);
+          box-shadow: 0 0 8px rgba(0, 191, 255, 0.5);
+          animation: pulseLine 2s infinite alternate;
+        }
+        @keyframes pulseLine {
+          0% { opacity: 0.2; }
+          100% { opacity: 0.8; }
+        }
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 0.7; }
+          100% { transform: scale(1.5); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
     
     // Create a grid pattern with different animation delays for sci-fi effect
     for (let i = 0; i < 20; i++) {
@@ -1067,6 +1111,13 @@ export default function MapsPage() {
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-3 justify-end">
+              <CyberButton 
+                onClick={() => createMockMap()} 
+                variant="destructive" 
+                className="border-red-500/50 hover:border-red-500/70"
+              >
+                Use Fallback Map
+              </CyberButton>
               <CyberButton onClick={() => exportData("map", "png")} variant="default">
                 Export as PNG
               </CyberButton>
